@@ -42,7 +42,7 @@ namespace nw {
 class Package {
  public:
   // Init package from command line parameters.
-  Package();
+//  Package();
 
   // Init package from specifed path.
   Package(FilePath path);
@@ -78,8 +78,8 @@ class Package {
  private:
   bool InitFromPath();
   void InitWithDefault();
-  bool ExtractPath();
-  bool ExtractPackage(const FilePath& zip_file, FilePath* where);
+//  bool ExtractPath();
+//  bool ExtractPackage(const FilePath& zip_file, FilePath* where);
 
   // Read chromium command line args from the package.json if specifed.
   void ReadChromiumArgs();

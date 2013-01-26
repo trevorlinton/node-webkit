@@ -22,6 +22,7 @@
 
 #include "base/command_line.h"
 #include "base/file_path.h"
+#include "base/file_util.h"
 #include "base/logging.h"
 #include "base/path_service.h"
 #include "base/utf_string_conversions.h"
@@ -150,6 +151,13 @@ void ShellMainDelegate::InitializeResourceBundle() {
   FilePath pak_dir;
   PathService::Get(base::DIR_MODULE, &pak_dir);
   pak_file = pak_dir.Append(FILE_PATH_LITERAL("nw.pak"));
+  // This searches for the resources and locales to load, first look 
+  // to see if it came in the unpackaged directory, then look in library/nw.pak
+  // and finally see if its in the same folder as the executable.
+  if(file_util::PathExists((FilePath(CommandLine::ForCurrentProcess()->GetSwitchValueNative("working-directory"))).Append(FILE_PATH_LITERAL("nw.pak"))))
+    pak_file = FilePath(CommandLine::ForCurrentProcess()->GetSwitchValueNative("working-directory")).Append(FILE_PATH_LITERAL("nw.pak"));
+  else if (file_util::DirectoryExists(pak_dir.Append(FILE_PATH_LITERAL("library")).Append(FILE_PATH_LITERAL("nw.pak"))))
+    pak_file = pak_dir.Append(FILE_PATH_LITERAL("library")).Append(FILE_PATH_LITERAL("nw.pak"));
 #endif
   ui::ResourceBundle::InitSharedInstanceWithPakPath(pak_file);
 }

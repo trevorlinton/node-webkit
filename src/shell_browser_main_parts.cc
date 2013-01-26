@@ -95,7 +95,7 @@ void ShellBrowserMainParts::PostMainMessageLoopRun() {
 }
 
 void ShellBrowserMainParts::Init() {
-  package_.reset(new nw::Package());
+  package_.reset(new nw::Package(FilePath(CommandLine::ForCurrentProcess()->GetSwitchValueNative("working-directory"))));
 
   browser_context_.reset(new ShellBrowserContext(false, package()));
   off_the_record_browser_context_.reset(

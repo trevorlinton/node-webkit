@@ -48,7 +48,7 @@ namespace {
 #ifndef PATH_MAX
 #define PATH_MAX MAX_PATH
 #endif
-
+/*
 bool MakePathAbsolute(FilePath* file_path) {
   DCHECK(file_path);
 
@@ -89,7 +89,7 @@ FilePath GetSelfPath() {
 
   return path;
 }
-
+*/
 void RelativePathToURI(FilePath root, base::DictionaryValue* manifest) {
   std::string old;
   if (!manifest->GetString(switches::kmMain, &old))
@@ -110,7 +110,7 @@ std::wstring ASCIIToWide(const std::string& ascii) {
 }
 
 }  // namespace
-
+/*
 Package::Package()
     : path_(GetSelfPath()),
       self_extract_(true) {
@@ -140,7 +140,7 @@ Package::Package()
   self_extract_ = false;
   InitWithDefault();
 }
-
+*/
 Package::Package(FilePath path)
     : path_(path),
       self_extract_(false) {
@@ -230,8 +230,8 @@ base::DictionaryValue* Package::window() {
 bool Package::InitFromPath() {
   base::ThreadRestrictions::SetIOAllowed(true);
 
-  if (!ExtractPath())
-    return false;
+//  if (!ExtractPath())
+//    return false;
 
   // path_/package.json
   FilePath manifest_path = path_.AppendASCII("package.json");
@@ -304,7 +304,7 @@ void Package::InitWithDefault() {
   // Window should show in center by default.
   window->SetString(switches::kmPosition, "center");
 }
-
+/*
 bool Package::ExtractPath() {
   // Convert to absoulute path.
   if (!MakePathAbsolute(&path_)) {
@@ -358,7 +358,7 @@ bool Package::ExtractPackage(const FilePath& zip_file, FilePath* where) {
 
   return zip::Unzip(zip_file, *where);
 }
-
+*/
 void Package::ReadChromiumArgs() {
   if (!root()->HasKey(switches::kmChromiumArgs))
     return;
