@@ -96,6 +96,14 @@ void Window::Call(const std::string& method,
     if (arguments.GetInteger(0, &width) &&
         arguments.GetInteger(1, &height))
       shell_->window()->SetMaximumSize(width, height);
+  } else if (method == "SetShowInTaskbar" ) {
+    bool show;
+    if (arguments.GetBoolean(0, &show))
+     shell_->window()->SetShowInTaskbar(show);
+  }else if (method == "SetBadgeCount" ) {
+    int count; 
+    if (arguments.GetInteger(0, &count))
+     shell_->window()->SetBadgeCount(count);
   } else if (method == "SetMinimumSize") {
     int width, height;
     if (arguments.GetInteger(0, &width) &&
