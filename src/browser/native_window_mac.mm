@@ -629,6 +629,10 @@ gfx::Size NativeWindowCocoa::GetSize() {
   NSRect frame = [window_ frame];
   return gfx::Size(frame.size.width, frame.size.height);
 }
+
+void NativeWindowCocoa::SetShowInTaskbar(bool show) {
+}
+
 void NativeWindowCocoa::SetBadgeCount(int count) {
   NSApplication *myApp = [NSApplication sharedApplication];
   NSDockTile *dockTile = [myApp dockTile];
