@@ -31,6 +31,10 @@ App.filteredArgv = [
   /--renderer-cmd-prefix.*/,
 ];
 
+App.prototype.screens = function() {
+  return JSON.parse(nw.callStaticMethodSync('App','GetScreens',[]));
+}
+
 App.prototype.quit = function() {
   nw.callStaticMethod('App', 'Quit', [ ]);
 }
@@ -130,3 +134,4 @@ if (process['_nw_app']) {
 } else {
   exports.App = process['_nw_app'] = new App();
 }
+

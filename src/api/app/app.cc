@@ -43,6 +43,8 @@
 #include <sys/stat.h>
 #include <io.h>
 #include <stdio.h>
+#elif defined(OS_MACOSX)
+#include <Carbon/Carbon.h>
 #endif
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
@@ -169,6 +171,54 @@ void App::Call(Shell* shell,
       static_cast<ShellBrowserContext*>(shell->web_contents()->GetBrowserContext());
     result->AppendString(browser_context->GetPath().value());
     return;
+  }else if (method == "GetScreens") {
+#if defined(OS_WIN)
+#elif defined(OS_MACOSX)
+    int display_count = 0;
+    std::stringstream ret (std::stringstream::in | std::stringstream::out);
+    CGDirectDisplayID online_displays[128];
+    CGDisplayCount online_display_count = 0;
+
+    if (CGGetOnlineDisplayList(arraysize(online_displays), online_displays, &online_display_count) != kCGErrorSuccess) {
+        result->AppendString("{}");
+        return;
+    }
+
+    for (CGDisplayCount online_display_index = 0; online_display_index < online_display_count; ++online_display_index)
+    {
+      CGDirectDisplayID online_display = online_displays[online_display_index];
+
+      ++display_count;
+      CGRect bounds = CGDisplayBounds(online_display);
+      CGDisplayModeRef mode = CGDisplayCopyDisplayMode(online_display);
+      int depth = 0;
+      CFStringRef encoding = CGDisplayModeCopyPixelEncoding(mode);
+      if (CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        depth = 32;
+      } else if (CFStringCompare( encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        depth = 16;
+      } else if(CFStringCompare( encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+        depth = 8;
+      }
+
+      if(display_count==1) ret << "{"; else ret << ",{";
+
+      ret << ",\"bounds\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << ",\"scaleFactor\":" << HIGetScaleFactor() << "}";
+      ret << ",\"colorDepth\":" << depth;
+      ret << ",\"scaleFactor\":" << HIGetScaleFactor();
+      ret << ",\"isPrimary\":" << (CGDisplayIsMain(online_display) ? "true" : "false");
+      ret << ",\"isMirrored\":" << (CGDisplayIsInMirrorSet(online_display) ? "true" : "false");
+      ret << ",\"isBuiltIn\":" << (CGDisplayIsBuiltin(online_display) ? "true" : "false");
+      ret << ",\"isAsleep\":" << (CGDisplayIsAsleep(online_display) ? "true" : "false");
+      ret << ",\"isActive\":" << (CGDisplayIsActive(online_display) ? "true" : "false");
+      ret << "}";
+      CFRelease(encoding);
+      CGDisplayModeRelease(mode);
+
+    }
+    result->AppendString("["+ret.str()+"]");
+    return;
+#endif
   }else if (method == "GetArgv") {
     nw::Package* package = shell->GetPackage();
     CommandLine* command_line = CommandLine::ForCurrentProcess();
