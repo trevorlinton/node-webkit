@@ -66,6 +66,172 @@ namespace api {
 
 namespace {
 
+#if defined(OS_WIN)
+struct MonitorDevice {
+   std::wstring cardName;
+   std::wstring deviceName;
+   std::wstring cardType;
+   std::wstring deviceType;
+   int x;
+   int y;
+   int x_work;
+   int y_work;
+   int width;
+   int height;
+   int width_work;
+   int height_work;
+   bool isPrimary;
+   bool isDisabled;
+   bool isSLM;
+   int colorDepth;
+   float scaleFactor;
+   bool isMirror;
+   bool isRemovable;
+};
+
+RECT getViewingMonitorsBounds(std::vector<MonitorDevice> displays) {
+   RECT result;
+   result.left = LONG_MAX;
+   result.top = LONG_MAX;
+   result.bottom = LONG_MIN;
+   result.right = LONG_MIN;
+
+   MonitorDevice disp;
+
+   for (unsigned i=0;i<displays.size();++i)
+   {
+      disp = displays[i];
+      if (! disp.isSLM && ! disp.isDisabled)
+      {
+         result.left = std::min((int)result.left, disp.x);
+         result.top = std::min((int)result.top, disp.y);
+         result.right = std::max((int)result.right, disp.x + disp.width);
+         result.bottom = std::max((int)result.bottom, disp.y + disp.height);
+      }
+   }
+
+   return result;
+}
+
+POINT getNextDisplayPosition(std::vector<MonitorDevice> displays) {
+   POINT result;
+   result.x = LONG_MIN;
+   result.y = LONG_MIN;
+
+   MonitorDevice disp;
+
+   for (unsigned i=0;i<displays.size();++i)
+   {
+      disp = displays[i];
+      if (! disp.isDisabled)
+      {
+         if ((disp.x + disp.width) > result.x)
+            result.x = disp.x + disp.width;
+            result.y = disp.y;
+      }
+   }
+   return result;
+}
+
+void updateMonitorRect(MonitorDevice * display) {
+  DEVMODE dm;
+  ZeroMemory(&dm, sizeof(dm));
+  dm.dmSize = sizeof(dm);
+  std::wstring cardName = display->cardName.c_str();
+
+  if (EnumDisplaySettingsEx(cardName.c_str(), ENUM_CURRENT_SETTINGS, &dm, 0) == FALSE)
+	  EnumDisplaySettingsEx(cardName.c_str(), ENUM_REGISTRY_SETTINGS, &dm, 0);
+  display->x = dm.dmPosition.x;
+  display->y = dm.dmPosition.y;
+  display->width = dm.dmPelsWidth;
+  display->height = dm.dmPelsHeight;
+}
+
+void updateMonitorRects(std::vector<MonitorDevice> * displays) {
+   for(unsigned int i=0;i<displays->size();++i)
+      updateMonitorRect(&(displays->at(i)));
+}
+
+std::vector<MonitorDevice> getMonitorInfo()
+{
+  std::vector<MonitorDevice> displays;
+	DISPLAY_DEVICE dd;
+	dd.cb = sizeof(dd);
+	DWORD dev = 0; // device index
+
+	while (EnumDisplayDevices(0, dev, &dd, 0))
+	{
+    MonitorDevice thisDev;
+    DISPLAY_DEVICE ddMon;
+    DEVMODE dm;
+    DWORD devMon = 0;
+    HMONITOR hm = 0;
+		MONITORINFO mi;
+
+		// get information about the monitor attached to this display adapter. dualhead cards
+		// and laptop video cards can have multiple monitors attached
+		ZeroMemory(&ddMon, sizeof(ddMon));
+		ddMon.cb = sizeof(ddMon);
+		
+		// please note that this enumeration may not return the correct monitor if multiple monitors
+		// are attached. this is because not all display drivers return the ACTIVE flag for the monitor
+		// that is actually active
+		while(EnumDisplayDevices(dd.DeviceName, devMon, &ddMon, 0)) {
+			if(ddMon.StateFlags & DISPLAY_DEVICE_ACTIVE) break;
+			devMon++;
+		}
+
+		if(!*ddMon.DeviceString) {
+			EnumDisplayDevices(dd.DeviceName, 0, &ddMon, 0);
+			if (!*ddMon.DeviceString) lstrcpy(ddMon.DeviceString, (L"Default Monitor"));
+		}
+
+		// get information about the display's position and the current display mode
+		ZeroMemory(&dm, sizeof(dm));
+		dm.dmSize = sizeof(dm);
+		if(EnumDisplaySettingsEx(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm, 0) == FALSE)
+			EnumDisplaySettingsEx(dd.DeviceName, ENUM_REGISTRY_SETTINGS, &dm, 0);
+
+		// get the monitor handle and workspace
+		ZeroMemory(&mi, sizeof(mi));
+		mi.cbSize = sizeof(mi);
+
+		if(dd.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) {
+			// display is enabled. only enabled displays have a monitor handle
+			POINT pt = { dm.dmPosition.x, dm.dmPosition.y };
+			hm = MonitorFromPoint(pt, MONITOR_DEFAULTTONULL);
+			if (hm) {
+        GetMonitorInfo(hm, &mi);
+      }
+
+      thisDev.deviceType = std::wstring(ddMon.DeviceString);
+      thisDev.cardType = std::wstring(dd.DeviceString);
+      thisDev.deviceName = std::wstring(ddMon.DeviceName);
+      thisDev.cardName = std::wstring(dd.DeviceName);
+      thisDev.x = dm.dmPosition.x;
+      thisDev.y = dm.dmPosition.y;
+      thisDev.width = dm.dmPelsWidth;
+      thisDev.height = dm.dmPelsHeight;
+      thisDev.x_work = mi.rcWork.left;
+      thisDev.y_work = mi.rcWork.top;
+      thisDev.width_work = mi.rcWork.right - mi.rcWork.left;
+      thisDev.height_work = mi.rcWork.bottom - mi.rcWork.top;
+      thisDev.isPrimary = (dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
+      thisDev.isDisabled = !(dd.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP);
+      thisDev.isRemovable = (dd.StateFlags & DISPLAY_DEVICE_REMOVABLE);
+      thisDev.isSLM = false;
+      thisDev.isMirror = (dd.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER);
+      thisDev.colorDepth = dm.dmBitsPerPel;
+
+      if(!(thisDev.deviceType.length()==0)) displays.push_back(thisDev);
+    }
+    dev++;
+	}
+
+	return displays;
+}
+#endif
+
 int _defgzip(FILE *source, FILE *dest, int level)
 {
     int ret = 0, flush = 0;
@@ -171,16 +337,34 @@ void App::Call(Shell* shell,
       static_cast<ShellBrowserContext*>(shell->web_contents()->GetBrowserContext());
     result->AppendString(browser_context->GetPath().value());
     return;
-  }else if (method == "GetScreens") {
+  } else if (method == "GetScreens") {
+    std::stringstream ret (std::stringstream::in | std::stringstream::out);
 #if defined(OS_WIN)
+    std::vector<MonitorDevice> devices = getMonitorInfo();
+    for(size_t i=0; i < devices.size(); i++) {
+      MonitorDevice device = devices[i];
+      if(i==0) ret << "{"; else ret << ",{";
+
+      ret << "\"bounds\":{\"x\":" << device.x << ", \"y\":" << device.y << ", \"width\":" << device.width << ", \"height\":" << device.height << "}";
+      ret << ",\"workarea\":{\"x\":" << device.x_work << ", \"y\":" << device.y_work << ", \"width\":" << device.width_work << ", \"height\":" << device.height_work << "}";
+      ret << ",\"colorDepth\":" << device.colorDepth;
+      ret << ",\"scaleFactor\":" << 1;
+      ret << ",\"isPrimary\":" << (device.isPrimary ? "true" : "false");
+      ret << ",\"isMirrored\":" << (device.isMirror ? "true" : "false");
+      ret << ",\"isBuiltIn\":" << ((!device.isRemovable) ? "true" : "false");
+      ret << ",\"isAsleep\":" << (device.isDisabled ? "true" : "false");
+      ret << ",\"isActive\":" << ((!device.isDisabled) ? "true" : "false");
+      ret << "}";
+    }
+    result->AppendString("["+ret.str()+"]");
+
 #elif defined(OS_MACOSX)
     int display_count = 0;
-    std::stringstream ret (std::stringstream::in | std::stringstream::out);
     CGDirectDisplayID online_displays[128];
     CGDisplayCount online_display_count = 0;
 
     if (CGGetOnlineDisplayList(arraysize(online_displays), online_displays, &online_display_count) != kCGErrorSuccess) {
-        result->AppendString("{}");
+        result->AppendString("[]");
         return;
     }
 
@@ -203,7 +387,11 @@ void App::Call(Shell* shell,
 
       if(display_count==1) ret << "{"; else ret << ",{";
 
-      ret << ",\"bounds\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << ",\"scaleFactor\":" << HIGetScaleFactor() << "}";
+      ret << "\"bounds\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << "}";
+      if(CGDisplayIsMain(online_display))
+        ret << "\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << (bounds.origin.y+22) << ", \"width\":" << bounds.size.width << ", \"height\":" << (bounds.size.height-22) << "}";
+      else
+        ret << "\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << "}";
       ret << ",\"colorDepth\":" << depth;
       ret << ",\"scaleFactor\":" << HIGetScaleFactor();
       ret << ",\"isPrimary\":" << (CGDisplayIsMain(online_display) ? "true" : "false");
@@ -217,8 +405,8 @@ void App::Call(Shell* shell,
 
     }
     result->AppendString("["+ret.str()+"]");
-    return;
 #endif
+    return;
   }else if (method == "GetArgv") {
     nw::Package* package = shell->GetPackage();
     CommandLine* command_line = CommandLine::ForCurrentProcess();
