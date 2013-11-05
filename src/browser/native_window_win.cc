@@ -51,6 +51,9 @@
 #include <time.h>
 #include <stdlib.h>
 #include <Dwmapi.h>
+#include <Shellapi.h>
+#include <Shobjidl.h>
+#include "content/nw/src/resource.h"
 
 namespace nw {
 
@@ -294,7 +297,16 @@ void NativeWindowWin::Close() {
 
 
 void NativeWindowWin::Notify(const std::string& title, const std::string& text, const std::string& subtitle, bool sound) {
-	
+  NOTIFYICONDATA nid = {};
+  nid.cbSize = sizeof(nid);
+  nid.hWnd = window_->GetNativeWindow();
+  nid.uFlags = NIF_ICON | NIF_INFO;
+  nid.dwInfoFlags = NIIF_USER || NIIF_LARGE_ICON;
+  lstrcpyn(nid.szInfoTitle,std::wstring(title.begin(),title.end()).c_str(),ARRAYSIZE(nid.szInfoTitle));
+  lstrcpyn(nid.szInfo,std::wstring(text.begin(),text.end()).c_str(),ARRAYSIZE(nid.szInfo));
+  LoadIconMetric(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MAINFRAME), LIM_SMALL, &(nid.hIcon));
+  LoadIconMetric(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MAINFRAME), LIM_SMALL, &(nid.hBalloonIcon));
+  Shell_NotifyIcon(NIM_ADD, &nid) ? S_OK : E_FAIL;
 }
 
 void NativeWindowWin::Move(const gfx::Rect& bounds) {
