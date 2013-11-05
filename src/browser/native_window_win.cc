@@ -460,6 +460,46 @@ void NativeWindowWin::SetAlwaysOnTop(bool top) {
   window_->SetAlwaysOnTop(top);
 }
 
+void NativeWindowWin::SetBadgeCount(int count) {
+
+}
+
+void NativeWindowWin::SetShowInTaskbar(bool show) {
+   if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
+    if (hidden_owner_window_.get() == NULL) {
+      hidden_owner_window_.reset(new HiddenOwnerWindow());
+    }
+
+    // Change the owner of native window. Only needed on Windows XP.
+    ::SetWindowLong(window_->GetNativeView(),
+                    GWL_HWNDPARENT,
+                    (LONG)hidden_owner_window_->hwnd());
+  }
+  base::win::ScopedComPtr<ITaskbarList> taskbar;
+  HRESULT result = taskbar.CreateInstance(CLSID_TaskbarList, NULL,
+                                          CLSCTX_INPROC_SERVER);
+  if (FAILED(result)) {
+    VLOG(1) << "Failed creating a TaskbarList object: " << result;
+    return;
+  }
+
+  result = taskbar->HrInit();
+  if (FAILED(result)) {
+    LOG(ERROR) << "Failed initializing an ITaskbarList interface.";
+    return;
+  }
+
+  if (show)
+    result = taskbar->AddTab(window_->GetNativeWindow());
+  else
+    result = taskbar->DeleteTab(window_->GetNativeWindow());
+
+  if (FAILED(result)) {
+    LOG(ERROR) << "Failed to change the show in taskbar attribute";
+    return;
+  }
+}
+
 void NativeWindowWin::SetPosition(const std::string& position) {
   if (position == "center") {
     gfx::Rect bounds = window_->GetWindowBoundsInScreen();

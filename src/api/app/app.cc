@@ -377,21 +377,17 @@ void App::Call(Shell* shell,
       CGDisplayModeRef mode = CGDisplayCopyDisplayMode(online_display);
       int depth = 0;
       CFStringRef encoding = CGDisplayModeCopyPixelEncoding(mode);
-      if (CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
-        depth = 32;
-      } else if (CFStringCompare( encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
-        depth = 16;
-      } else if(CFStringCompare( encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
-        depth = 8;
-      }
+      if (CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) depth = 32;
+      else if (CFStringCompare( encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) depth = 16;
+      else if(CFStringCompare( encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) depth = 8;
 
       if(display_count==1) ret << "{"; else ret << ",{";
 
       ret << "\"bounds\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << "}";
       if(CGDisplayIsMain(online_display))
-        ret << "\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << (bounds.origin.y+22) << ", \"width\":" << bounds.size.width << ", \"height\":" << (bounds.size.height-22) << "}";
+        ret << ",\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << (bounds.origin.y+22) << ", \"width\":" << bounds.size.width << ", \"height\":" << (bounds.size.height-22) << "}";
       else
-        ret << "\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << "}";
+        ret << ",\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << "}";
       ret << ",\"colorDepth\":" << depth;
       ret << ",\"scaleFactor\":" << HIGetScaleFactor();
       ret << ",\"isPrimary\":" << (CGDisplayIsMain(online_display) ? "true" : "false");
@@ -402,12 +398,11 @@ void App::Call(Shell* shell,
       ret << "}";
       CFRelease(encoding);
       CGDisplayModeRelease(mode);
-
     }
     result->AppendString("["+ret.str()+"]");
 #endif
     return;
-  }else if (method == "GetArgv") {
+  } else if (method == "GetArgv") {
     nw::Package* package = shell->GetPackage();
     CommandLine* command_line = CommandLine::ForCurrentProcess();
     CommandLine::StringVector args = command_line->GetArgs();

@@ -630,6 +630,22 @@ gfx::Size NativeWindowCocoa::GetSize() {
   return gfx::Size(frame.size.width, frame.size.height);
 }
 
+void NativeWindowCocoa::SetShowInTaskbar(bool show) {
+}
+
+void NativeWindowCocoa::SetBadgeCount(int count) {
+  NSApplication *myApp = [NSApplication sharedApplication];
+  NSDockTile *dockTile = [myApp dockTile];
+  if (count > 0) {
+    NSString *label = [NSString stringWithFormat:@"%d", count];
+    [dockTile setShowsApplicationBadge:YES];
+    [dockTile setBadgeLabel:label];
+  } else {
+    [dockTile setShowsApplicationBadge:NO];
+    [dockTile setBadgeLabel:nil];
+  }
+}
+
 void NativeWindowCocoa::SetMinimumSize(int width, int height) {
   NSSize min_size = NSMakeSize(width, height);
   NSView* content = [window() contentView];
