@@ -201,6 +201,18 @@ enum {
 }
 
 - (NSView*)hitTest:(NSPoint)aPoint {
+/*  if([[self window] getGlass]) {
+    NSRect rect = NSMakeRect(aPoint.x,aPoint.y,1,1);
+    NSBitmapImageRep* bir = [self bitmapImageRepForCachingDisplayInRect:rect];
+    [bir setSize:rect.size];
+    [self cacheDisplayInRect:rect toBitmapImageRep:bir];
+    NSColor* color = [bir colorAtX:0 y:0];
+    //[bir release];
+    if([color alphaComponent]<0.05)
+      return self;
+    else
+      return nil;
+  }*/
   if (shellWindow_->use_system_drag())
     return nil;
   if (!shellWindow_->draggable_region() ||

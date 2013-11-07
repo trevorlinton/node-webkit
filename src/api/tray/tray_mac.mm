@@ -23,6 +23,7 @@
 #include "base/values.h"
 #import <Cocoa/Cocoa.h>
 #include "content/nw/src/api/menu/menu.h"
+#include "content/nw/src/net/util/embed_utils.h"
 
 namespace api {
 
@@ -46,8 +47,14 @@ void Tray::SetTitle(const std::string& title) {
 
 void Tray::SetIcon(const std::string& icon) {
   if (!icon.empty()) {
-    NSImage* image = [[NSImage alloc]
-					  initWithContentsOfFile:[NSString stringWithUTF8String:icon.c_str()]];
+    NSImage *image;
+    embed_util::FileMetaInfo meta;
+    if(embed_util::Utility::GetFileInfo(icon,&meta) && embed_util::Utility::GetFileData(&meta)) {
+      image = [[NSImage alloc] initWithData:[NSData dataWithBytes:meta.data length:meta.data_size]];
+    } else {
+      image = [[NSImage alloc]
+                        initWithContentsOfFile:[NSString stringWithUTF8String:icon.c_str()]];
+    }
     [image setScalesWhenResized:YES];
     [image setSize:NSMakeSize(22, 22)];
     [status_item_ setImage:image];
