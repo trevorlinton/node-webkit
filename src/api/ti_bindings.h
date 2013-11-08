@@ -31,7 +31,7 @@ namespace api {
 		IDR_TI_API_TRAY_JS,
 		IDR_TI_API_FILEDIALOG_JS,
 		IDR_TI_API_NOTIFY_JS,
-    IDR_TI_API_DEVICES_JS
+		IDR_TI_API_DEVICES_JS
 	};
 	
 	const int TiBindings::file_count = sizeof(TiBindings::files)/sizeof(int);

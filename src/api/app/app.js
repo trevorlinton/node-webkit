@@ -31,6 +31,10 @@ App.filteredArgv = [
   /--renderer-cmd-prefix.*/,
 ];
 
+App.prototype.getIdleTime = function () {
+	return nw.callStaticMethodSync('App', 'GetIdleTime', []);
+}
+
 App.prototype.screens = function() {
   return JSON.parse(nw.callStaticMethodSync('App','GetScreens',[]));
 }

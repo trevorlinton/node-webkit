@@ -465,7 +465,7 @@ void NativeWindowWin::SetBadgeCount(int count) {
 }
 
 void NativeWindowWin::SetShowInTaskbar(bool show) {
-   if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
+   /*if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
     if (hidden_owner_window_.get() == NULL) {
       hidden_owner_window_.reset(new HiddenOwnerWindow());
     }
@@ -497,7 +497,7 @@ void NativeWindowWin::SetShowInTaskbar(bool show) {
   if (FAILED(result)) {
     LOG(ERROR) << "Failed to change the show in taskbar attribute";
     return;
-  }
+  }*/
 }
 
 void NativeWindowWin::SetPosition(const std::string& position) {

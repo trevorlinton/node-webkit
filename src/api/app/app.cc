@@ -67,6 +67,21 @@ namespace api {
 namespace {
 
 #if defined(OS_WIN)
+
+long GetIdleTime()
+{
+    LASTINPUTINFO lii;
+    memset(&lii, 0, sizeof(lii));
+
+    lii.cbSize = sizeof(lii);
+    ::GetLastInputInfo(&lii);
+
+    DWORD currentTickCount = GetTickCount();
+    long idleTicks = currentTickCount - lii.dwTime;
+
+    return (int)idleTicks;
+}
+
 struct MonitorDevice {
    std::wstring cardName;
    std::wstring deviceName;
@@ -230,6 +245,72 @@ std::vector<MonitorDevice> getMonitorInfo()
 
 	return displays;
 }
+#elif defined(OS_MACOSX)
+long GetIdleTime()
+    {
+        // some of the code for this was from:
+        // http://ryanhomer.com/blog/2007/05/31/detecting-when-your-cocoa-application-is-idle/
+        CFMutableDictionaryRef properties = 0;
+        CFTypeRef obj;
+        mach_port_t masterPort;
+        io_iterator_t iter;
+        io_registry_entry_t curObj;
+
+        IOMasterPort(MACH_PORT_NULL, &masterPort);
+
+        /* Get IOHIDSystem */
+        IOServiceGetMatchingServices(masterPort, IOServiceMatching("IOHIDSystem"), &iter);
+        if (iter == 0)
+        {
+            return -1;
+        }
+        else
+        {
+            curObj = IOIteratorNext(iter);
+        }
+        if (IORegistryEntryCreateCFProperties(curObj, &properties, kCFAllocatorDefault, 0) == KERN_SUCCESS && properties != NULL)
+        {
+            obj = CFDictionaryGetValue(properties, CFSTR("HIDIdleTime"));
+            CFRetain(obj);
+        }
+        else
+        {
+            return -1;
+        }
+
+        uint64_t tHandle = 0;
+        if (obj)
+        {
+            CFTypeID type = CFGetTypeID(obj);
+
+            if (type == CFDataGetTypeID())
+            {
+                CFDataGetBytes((CFDataRef) obj, CFRangeMake(0, sizeof(tHandle)), (UInt8*) &tHandle);
+            }
+            else if (type == CFNumberGetTypeID())
+            {
+                CFNumberGetValue((CFNumberRef)obj, kCFNumberSInt64Type, &tHandle);
+            }
+            else
+            {
+                // error
+                tHandle = 0;
+            }
+
+            CFRelease(obj);
+
+            tHandle /= 1000000; // return as milliseconds
+        }
+        else
+        {
+            tHandle = -1;
+        }
+
+        CFRelease((CFTypeRef)properties);
+        IOObjectRelease(curObj);
+        IOObjectRelease(iter);
+        return (long)tHandle;
+    }
 #endif
 
 int _defgzip(FILE *source, FILE *dest, int level)
@@ -336,6 +417,9 @@ void App::Call(Shell* shell,
     ShellBrowserContext* browser_context =
       static_cast<ShellBrowserContext*>(shell->web_contents()->GetBrowserContext());
     result->AppendString(browser_context->GetPath().value());
+    return;
+  } else if (method == "GetIdleTime") {
+    result->AppendInteger(GetIdleTime());
     return;
   } else if (method == "GetScreens") {
     std::stringstream ret (std::stringstream::in | std::stringstream::out);
