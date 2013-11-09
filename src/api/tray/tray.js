@@ -45,6 +45,12 @@ function Tray(option) {
   if (option.hasOwnProperty('tooltip'))
     option.tooltip = String(option.tooltip);
 
+  if (option.hasOwnProperty('click')) {
+    if (typeof option.click != 'function')
+      throw new String("'click' must be a valid Function");
+    else
+      this.click = option.click;
+  }
   if (option.hasOwnProperty('menu')) {
     if (v8_util.getConstructorName(option.menu) != 'Menu')
       throw new String("'menu' must be a valid Menu");
@@ -119,4 +125,14 @@ Tray.prototype.remove = function() {
   nw.callObjectMethod(this, 'Remove', []);
 }
 
+Tray.prototype.handleEvent = function(ev) {
+  if (ev == 'click') {
+    // Emit click handler
+    if (typeof this.click == 'function')
+      this.click();
+  }
+
+  // Emit generate event handler
+  exports.Base.prototype.handleEvent.apply(this, arguments);
+}
 exports.Tray = Tray;
