@@ -81,7 +81,7 @@ enum {
 
 #endif  // MAC_OS_X_VERSION_10_7
 
-@interface NativeWindowDelegate : NSObject<NSWindowDelegate> {
+@interface NativeWindowDelegate : NSObject<NSWindowDelegate, NSUserNotificationCenterDelegate> {
  @private
   base::WeakPtr<content::Shell> shell_;
 }
@@ -96,7 +96,7 @@ enum {
   }
 	
 	// Set user default notification
-	//[[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate:self];
+	[[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate:self];
   return self;
 }
 
@@ -469,7 +469,7 @@ void NativeWindowCocoa::Notify(const std::string& title, const std::string& text
 	//notification.actionButtonTitle = actionTitle;
 	//notification.hasActionButton = YES;
 	if(sound)
-		[notification setSoundName:@"NSUserNotificationDefaultSoundName"];
+		[notification setSoundName:NSUserNotificationDefaultSoundName];
 	
 	[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
 }
