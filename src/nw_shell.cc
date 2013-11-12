@@ -509,6 +509,11 @@ void Shell::WebContentsCreated(WebContents* source_contents,
     manifest->SetInteger(switches::kmX, features.x);
   if (features.ySet)
     manifest->SetInteger(switches::kmY, features.y);
+
+  // no matter what window.open should not inherit frames or transparency.
+  manifest->SetBoolean(switches::kmTransparent, false);
+  manifest->SetBoolean(switches::kmFrame, true);
+
   // window.open should show the window by default.
   manifest->SetBoolean(switches::kmShow, true);
 
