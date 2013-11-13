@@ -136,6 +136,7 @@ class NativeWindowWin : public NativeWindow,
  private:
   friend class content::Shell;
   void OnViewWasResized();
+  bool SetGlass();
   NativeWindowToolbarWin* toolbar_;
   views::WebView* web_view_;
   views::Widget* window_;

@@ -279,6 +279,9 @@ NativeWindowWin::NativeWindowWin(const base::WeakPtr<content::Shell>& shell,
   window_->SetSize(window_bounds.size());
   window_->CenterWindow(window_bounds.size());
   window_->UpdateWindowIcon();
+  bool glass;
+  if(manifest->HasKey(switches::kmGlass)) manifest->GetBoolean(switches::kmGlass, &glass);
+  if(glass) SetGlass();
   if(manifest->HasKey(switches::kmTaskBar)) manifest->GetBoolean(switches::kmTaskBar, &is_intaskbar_); 
   if(!is_intaskbar_) {
     SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE)|WS_EX_TOOLWINDOW);
@@ -377,6 +380,14 @@ bool NativeWindowWin::IsFullscreen() {
   return is_fullscreen_;
 }
 
+bool NativeWindowWin::SetGlass() {
+  MARGINS mgMarInset = { -1, -1, -1, -1 };
+  if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
+    return false;
+  }
+  return true;
+}
+
 void NativeWindowWin::SetTransparent() {
   is_transparent_ = true;
   
@@ -408,9 +419,8 @@ void NativeWindowWin::SetTransparent() {
     SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_BORDER); 
     SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, WS_EX_LAYERED);
   }
-  MARGINS mgMarInset = { -1, -1, -1, -1 };
-  if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
-    NOTREACHED() << "Windows DWM extending to client area failed, transparency is not supported.";
+
+  if(SetGlass()) {
     is_transparent_ = false;
     return;
   }

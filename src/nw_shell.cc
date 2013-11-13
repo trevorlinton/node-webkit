@@ -418,7 +418,6 @@ void Shell::RenderViewCreated(RenderViewHost* render_view_host) {
     background.setConfig(SkBitmap::kARGB_8888_Config, 1, 1);
     background.allocPixels();
     background.eraseARGB(0x00, 0x00, 0x00, 0x00);
-
     content::RenderWidgetHostView* view = render_view_host->GetView();
     DCHECK(view);
     view->SetBackground(background);
