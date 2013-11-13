@@ -54,6 +54,13 @@ namespace nw {
 	std::string EmbedRequestJob::EmbedURLToFilePath(const GURL& url) {
 		if (!url.is_valid()) return NULL;
 		std::string old_path = url.path();
+    // embed can be used as embed://[host ignored]/file/path or as embed://file/path, thi s
+    // compensates for references that come in as embed://file/path
+    if(old_path=="/") {
+      old_path = "/"+url.host()+url.path();
+      if(old_path.at( old_path.length() - 1 )=='/')
+        old_path = old_path.substr(0, old_path.size()-1);
+    }
 		if (old_path.empty()) return NULL;
 		old_path = UnescapeURLComponent(old_path, UnescapeRule::SPACES | UnescapeRule::URL_SPECIAL_CHARS);
 		std::string new_path;

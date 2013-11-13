@@ -22,16 +22,39 @@
 
 #include "base/values.h"
 #import <Cocoa/Cocoa.h>
+#include "content/nw/src/api/dispatcher_host.h"
 #include "content/nw/src/api/menu/menu.h"
 #include "content/nw/src/net/util/embed_utils.h"
+
+@interface MacTrayObserver : NSObject {
+ @private
+  api::Tray* backing;
+}
+- (void)setBacking:(api::Tray*)back;
+- (void)onClick:(id)sender;
+@end
+
+@implementation MacTrayObserver
+- (void)setBacking:(api::Tray*)back {
+  backing = back;
+}
+- (void)onClick:(id)sender {
+  base::ListValue args;
+  backing->dispatcher_host()->SendEvent(backing,"click",args);
+}
+@end
 
 namespace api {
 
 void Tray::Create(const base::DictionaryValue& option) {
   NSStatusBar *status_bar = [NSStatusBar systemStatusBar];
+  MacTrayObserver* observer = [[MacTrayObserver alloc] init];
+  [observer setBacking:this];
   status_item_ = [status_bar statusItemWithLength:NSVariableStatusItemLength];
   [status_item_ setHighlightMode:YES];
   [status_item_ retain];
+  [status_item_ setTarget:observer];
+  [status_item_ setAction:@selector(onClick:)];
 }
 
 void Tray::ShowAfterCreate() {
@@ -80,6 +103,8 @@ void Tray::SetTooltip(const std::string& tooltip) {
 }
 
 void Tray::SetMenu(Menu* menu) {
+  [status_item_ setTarget:nil];
+  [status_item_ setAction:nil];
   [status_item_ setMenu:menu->menu_];
 }
 
