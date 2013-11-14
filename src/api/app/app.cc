@@ -21,6 +21,7 @@
 #include "third_party/zlib/google/zip.h"
 #include "third_party/zlib/zlib.h"
 #include "content/nw/src/api/app/app.h"
+#include "third_party/modp_b64/modp_b64.h"
 #include "base/file_util.h"
 #include "base/files/memory_mapped_file.h"
 #include "base/command_line.h"
@@ -34,9 +35,12 @@
 #include "content/nw/src/nw_package.h"
 #include "content/nw/src/nw_shell.h"
 #include "content/nw/src/shell_browser_context.h"
+#include "content/nw/src/common/shell_switches.h"
 #include "content/common/view_messages.h"
+#include "content/public/common/renderer_preferences.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/render_process_host.h"
+#include "content/nw/src/net/util/embed_utils.h"
 #if defined(OS_WIN)
 #include <fcntl.h>
 #include <sys/types.h>
@@ -418,6 +422,25 @@ void App::Call(Shell* shell,
       static_cast<ShellBrowserContext*>(shell->web_contents()->GetBrowserContext());
     result->AppendString(browser_context->GetPath().value());
     return;
+  } else if (method == "GetEmbeddedResource") {
+    std::string str;
+    std::string out;
+    arguments.GetString(0,&str);
+    arguments.GetString(1,&out);
+    embed_util::FileMetaInfo info;
+    if(embed_util::Utility::GetFileInfo(str,&info) &&
+       embed_util::Utility::GetFileData(&info))
+    {
+      file_util::WriteFile(base::FilePath(out),(char *)info.data,info.data_size);
+    }
+    return;
+  } else if (method == "SetUserAgent") {
+    nw::Package* package = shell->GetPackage();
+    std::string user_agent;
+    arguments.GetString(0,&user_agent);
+    package->root()->GetString(switches::kmUserAgent, &user_agent);
+    shell->web_contents()->SetUserAgentOverride(user_agent);
+    return;
   } else if (method == "GetIdleTime") {
     result->AppendInteger(GetIdleTime());
     return;
@@ -473,7 +496,7 @@ void App::Call(Shell* shell,
       else
         ret << ",\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << "}";
       ret << ",\"colorDepth\":" << depth;
-      ret << ",\"scaleFactor\":" << HIGetScaleFactor();
+      ret << ",\"scaleFactor\":1,";
       ret << ",\"isPrimary\":" << (CGDisplayIsMain(online_display) ? "true" : "false");
       ret << ",\"isMirrored\":" << (CGDisplayIsInMirrorSet(online_display) ? "true" : "false");
       ret << ",\"isBuiltIn\":" << (CGDisplayIsBuiltin(online_display) ? "true" : "false");

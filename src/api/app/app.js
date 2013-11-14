@@ -43,6 +43,14 @@ App.prototype.quit = function() {
   nw.callStaticMethod('App', 'Quit', [ ]);
 }
 
+App.prototype.getResource = function(resc,out) {
+  return nw.callStaticMethodSync('App','GetEmbeddedResource',[resc,out]);
+}
+
+App.prototype.setUserAgent = function(agent) {
+  nw.callStaticMethodSync('App','SetUserAgent',[agent]);
+}
+
 App.prototype.zip = function(zipdir, zipfile) {
   nw.callStaticMethodSync('App','Zip',[zipdir, zipfile]);
 }
