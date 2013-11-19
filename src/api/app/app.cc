@@ -496,7 +496,7 @@ void App::Call(Shell* shell,
       else
         ret << ",\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << "}";
       ret << ",\"colorDepth\":" << depth;
-      ret << ",\"scaleFactor\":1,";
+      ret << ",\"scaleFactor\":1";
       ret << ",\"isPrimary\":" << (CGDisplayIsMain(online_display) ? "true" : "false");
       ret << ",\"isMirrored\":" << (CGDisplayIsInMirrorSet(online_display) ? "true" : "false");
       ret << ",\"isBuiltIn\":" << (CGDisplayIsBuiltin(online_display) ? "true" : "false");
@@ -513,18 +513,8 @@ void App::Call(Shell* shell,
     nw::Package* package = shell->GetPackage();
     CommandLine* command_line = CommandLine::ForCurrentProcess();
     CommandLine::StringVector args = command_line->GetArgs();
-    CommandLine::StringVector argv = command_line->original_argv();
+    result->AppendString(command_line->GetArgumentsString());
 
-    // Ignore first non-switch arg if it's not a standalone package.
-    bool ignore_arg = !package->self_extract();
-    for (unsigned i = 1; i < argv.size(); ++i) {
-      if (ignore_arg && argv[i] == args[0]) {
-        ignore_arg = false;
-        continue;
-      }
-
-      result->AppendString(argv[i]);
-    }
 
     return;
   } else if (method == "Zip") { 
