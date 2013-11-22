@@ -275,7 +275,7 @@ void ShellContentBrowserClient::OverrideWebkitPrefs(
   // This should eventually be removed, this still allows for mouse click
   // throughs on transparent windows but degrades performance for videos
   // and elaborate webgl type animations/css transforms.
-  prefs->accelerated_compositing_enabled = false;
+  //prefs->accelerated_compositing_enabled = false;
 
   base::DictionaryValue* webkit;
   if (package->root()->GetDictionary(switches::kmWebkit, &webkit)) {
