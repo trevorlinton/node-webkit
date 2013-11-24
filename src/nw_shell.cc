@@ -48,6 +48,7 @@
 #include "content/public/common/renderer_preferences.h"
 #include "content/public/common/url_constants.h"
 #include "content/nw/src/api/api_messages.h"
+#include "content/nw/src/api/dispatcher_host.h"
 #include "content/nw/src/api/app/app.h"
 #include "content/nw/src/browser/browser_dialogs.h"
 #include "content/nw/src/browser/file_select_helper.h"
@@ -155,11 +156,12 @@ Shell* Shell::FromRenderViewHost(RenderViewHost* rvh) {
 
 Shell::Shell(WebContents* web_contents, base::DictionaryValue* manifest)
     :
-      is_devtools_(false),
-      force_close_(false),
-      id_(-1),
-      enable_nodejs_(true),
-      weak_ptr_factory_(this)
+  devtools_window_id_(0),
+  is_devtools_(false),
+  force_close_(false),
+  id_(-1),
+  enable_nodejs_(true),
+  weak_ptr_factory_(this)
 {
   // Register shell.
   registrar_.Add(this, NOTIFICATION_WEB_CONTENTS_TITLE_UPDATED,
@@ -192,6 +194,9 @@ Shell::~Shell() {
 
   if (is_devtools_ && devtools_owner_.get()) {
     devtools_owner_->SendEvent("devtools-closed");
+    api::DispatcherHost* dhost = api::FindDispatcherHost(devtools_owner_->web_contents_->GetRenderViewHost());
+    dhost->OnDeallocateObject(devtools_owner_->devtools_window_id_);
+    devtools_owner_->devtools_window_id_ = 0;
   }
 
   for (size_t i = 0; i < windows_.size(); ++i) {
@@ -327,6 +332,20 @@ void Shell::CloseDevTools() {
     return;
   devtools_window_->window()->Close();
   devtools_window_.reset();
+  devtools_window_id_ = 0;
+}
+
+int Shell::WrapDevToolsWindow() {
+  if (devtools_window_id_)
+    return devtools_window_id_;
+  if (!devtools_window_)
+    return 0;
+  api::DispatcherHost* dhost = api::FindDispatcherHost(devtools_window_->web_contents_->GetRenderViewHost());
+  int object_id = dhost->AllocateId();
+  base::DictionaryValue manifest;
+  dhost->OnAllocateObject(object_id, "Window", manifest);
+  devtools_window_id_ = object_id;
+  return object_id;
 }
 
 void Shell::ShowDevTools(const char* jail_id, bool headless) {

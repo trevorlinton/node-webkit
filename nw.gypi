@@ -5,6 +5,11 @@
 {
   'variables': {
     'nw_product_name': 'Runtime',
+    'conditions': [
+      ['OS=="linux"', {
+       'linux_dump_symbols%': 1,
+      }],
+    ],
   },
   'targets': [
     {
@@ -638,6 +643,11 @@
                 "publicKeyToken='6595b64144ccf1df' language='*'\"",
           ],
           'SubSystem': '2',  # Set /SUBSYSTEM:WINDOWS
+        },
+	'VCManifestTool': {
+          'AdditionalManifestFiles': [
+            '$(ProjectDir)\\nw\\src\\nw.exe.manifest',
+          ],
         },
       },
       'conditions': [

@@ -24,7 +24,10 @@
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
 #include "base/threading/worker_pool.h"
+#include "chrome/browser/chrome_notification_types.h"
+#include "chrome/browser/net/chrome_cookie_notification_details.h"
 #include "content/public/browser/browser_thread.h"
+#include "content/public/browser/notification_service.h"
 #include "content/public/common/url_constants.h"
 #include "content/nw/src/net/shell_network_delegate.h"
 #include "content/public/browser/cookie_store_factory.h"
@@ -32,6 +35,7 @@
 #include "content/nw/src/net/app_protocol_handler.h"
 #include "content/nw/src/nw_protocol_handler.h"
 #include "content/nw/src/nw_shell.h"
+#include "content/nw/src/shell_content_browser_client.h"
 #include "net/cert/cert_verifier.h"
 #include "net/ssl/default_server_bound_cert_store.h"
 #include "net/dns/host_resolver.h"
@@ -54,6 +58,7 @@
 #include "net/url_request/url_request_context.h"
 #include "net/url_request/url_request_context_storage.h"
 #include "net/url_request/url_request_job_factory_impl.h"
+#include "ui/base/l10n/l10n_util.h"
 
 using base::MessageLoop;
 
@@ -74,6 +79,43 @@ void InstallProtocolHandlers(net::URLRequestJobFactoryImpl* job_factory,
   protocol_handlers->clear();
 }
 
+// ----------------------------------------------------------------------------
+// CookieMonster::Delegate implementation
+// ----------------------------------------------------------------------------
+class NWCookieMonsterDelegate : public net::CookieMonster::Delegate {
+ public:
+  explicit NWCookieMonsterDelegate(ShellBrowserContext* browser_context)
+    : browser_context_(browser_context) {
+  }
+
+  // net::CookieMonster::Delegate implementation.
+  virtual void OnCookieChanged(
+      const net::CanonicalCookie& cookie,
+      bool removed,
+      net::CookieMonster::Delegate::ChangeCause cause) OVERRIDE {
+    BrowserThread::PostTask(
+        BrowserThread::UI, FROM_HERE,
+        base::Bind(&NWCookieMonsterDelegate::OnCookieChangedAsyncHelper,
+                   this, cookie, removed, cause));
+  }
+
+ private:
+  virtual ~NWCookieMonsterDelegate() {}
+
+  void OnCookieChangedAsyncHelper(
+      const net::CanonicalCookie& cookie,
+      bool removed,
+      net::CookieMonster::Delegate::ChangeCause cause) {
+    ChromeCookieDetails cookie_details(&cookie, removed, cause);
+      content::NotificationService::current()->Notify(
+          chrome::NOTIFICATION_COOKIE_CHANGED,
+          content::Source<ShellBrowserContext>(browser_context_),
+          content::Details<ChromeCookieDetails>(&cookie_details));
+  }
+
+  ShellBrowserContext* browser_context_;
+};
+
 }  // namespace
 
 
@@ -83,12 +125,14 @@ ShellURLRequestContextGetter::ShellURLRequestContextGetter(
     const FilePath& root_path,
     MessageLoop* io_loop,
     MessageLoop* file_loop,
-    ProtocolHandlerMap* protocol_handlers)
+    ProtocolHandlerMap* protocol_handlers,
+    ShellBrowserContext* browser_context)
     : ignore_certificate_errors_(ignore_certificate_errors),
       data_path_(data_path),
       root_path_(root_path),
       io_loop_(io_loop),
-      file_loop_(file_loop) {
+      file_loop_(file_loop),
+      browser_context_(browser_context) {
   // Must first be created on the UI thread.
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
 
@@ -109,7 +153,11 @@ net::URLRequestContext* ShellURLRequestContextGetter::GetURLRequestContext() {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
 
   if (!url_request_context_.get()) {
-    url_request_context_.reset(new net::URLRequestContext());
+    ShellContentBrowserClient* browser_client =
+      static_cast<ShellContentBrowserClient*>(
+          GetContentClient()->browser());
+
+  url_request_context_.reset(new net::URLRequestContext());
     network_delegate_.reset(new ShellNetworkDelegate);
     url_request_context_->set_network_delegate(network_delegate_.get());
     storage_.reset(
@@ -121,7 +169,7 @@ net::URLRequestContext* ShellURLRequestContextGetter::GetURLRequestContext() {
         cookie_path,
         false,
         NULL,
-        NULL);
+        new NWCookieMonsterDelegate(browser_context_));
     cookie_store->GetCookieMonster()->SetPersistSessionCookies(true);
     storage_->set_cookie_store(cookie_store);
 
@@ -131,8 +179,16 @@ net::URLRequestContext* ShellURLRequestContextGetter::GetURLRequestContext() {
     storage_->set_server_bound_cert_service(new net::ServerBoundCertService(
         new net::DefaultServerBoundCertStore(NULL),
         base::WorkerPool::GetTaskRunner(true)));
+
+    std::string accept_lang = browser_client->GetApplicationLocale();
+    if (accept_lang.empty())
+      accept_lang = "en-us,en";
+    else
+      accept_lang.append(",en-us,en");
     storage_->set_http_user_agent_settings(
-        new net::StaticHttpUserAgentSettings("en-us,en", EmptyString()));
+         new net::StaticHttpUserAgentSettings(
+                net::HttpUtil::GenerateAcceptLanguageHeader(accept_lang),
+                EmptyString()));
 
     scoped_ptr<net::HostResolver> host_resolver(
         net::HostResolver::CreateDefaultResolver(NULL));
