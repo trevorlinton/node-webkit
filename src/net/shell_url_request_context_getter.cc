@@ -125,8 +125,8 @@ net::URLRequestContext* ShellURLRequestContextGetter::GetURLRequestContext() {
     cookie_store->GetCookieMonster()->SetPersistSessionCookies(true);
     storage_->set_cookie_store(cookie_store);
 
-    const char* schemes[] = {"http", "https", "file", "app"};
-    cookie_store->GetCookieMonster()->SetCookieableSchemes(schemes, 4);
+    const char* schemes[] = {"http", "https", "file", "app", "embed"};
+    cookie_store->GetCookieMonster()->SetCookieableSchemes(schemes, 5);
 
     storage_->set_server_bound_cert_service(new net::ServerBoundCertService(
         new net::DefaultServerBoundCertStore(NULL),

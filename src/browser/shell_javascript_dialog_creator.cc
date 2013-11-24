@@ -50,7 +50,7 @@ void ShellJavaScriptDialogCreator::RunJavaScriptDialog(
     if(javascript_message_type==JAVASCRIPT_MESSAGE_TYPE_ALERT)
     {
         MessageBox(NULL, message_text.c_str(), L"", MB_OK);
-        *did_suppress_message = false;
+        *did_suppress_message = true;
         return;
     }
 #endif

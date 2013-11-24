@@ -279,7 +279,7 @@ NativeWindowWin::NativeWindowWin(const base::WeakPtr<content::Shell>& shell,
   window_->SetSize(window_bounds.size());
   window_->CenterWindow(window_bounds.size());
   window_->UpdateWindowIcon();
-  bool glass;
+  bool glass = false;
   if(manifest->HasKey(switches::kmGlass)) manifest->GetBoolean(switches::kmGlass, &glass);
   if(glass) SetGlass();
   if(manifest->HasKey(switches::kmTaskBar)) manifest->GetBoolean(switches::kmTaskBar, &is_intaskbar_); 

@@ -268,6 +268,14 @@ void ShellContentBrowserClient::OverrideWebkitPrefs(
   prefs->css_variables_enabled = true;
   prefs->experimental_webgl_enabled = true;
   
+  /*prefs->accelerated_2d_canvas_enabled = true;
+  prefs->accelerated_compositing_enabled = true;
+  prefs->accelerated_filters_enabled = true;
+  prefs->accelerated_compositing_for_3d_transforms_enabled = true;
+  prefs->accelerated_compositing_for_animation_enabled = true;
+  prefs->accelerated_compositing_for_overflow_scroll_enabled = true;
+  prefs->accelerated_compositing_for_scrollable_frames_enabled = true;*/
+
   // Disable plugins and cache by default.
   prefs->plugins_enabled = false;
   prefs->java_enabled = false;

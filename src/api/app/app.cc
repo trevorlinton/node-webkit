@@ -431,7 +431,11 @@ void App::Call(Shell* shell,
     if(embed_util::Utility::GetFileInfo(str,&info) &&
        embed_util::Utility::GetFileData(&info))
     {
+#ifdef OS_WIN
+      file_util::WriteFile(base::FilePath(std::wstring(out.begin(),out.end())),(char *)info.data,info.data_size);
+#else
       file_util::WriteFile(base::FilePath(out),(char *)info.data,info.data_size);
+#endif
     }
     return;
   } else if (method == "SetUserAgent") {
@@ -496,7 +500,7 @@ void App::Call(Shell* shell,
       else
         ret << ",\"workarea\":{\"x\":" << bounds.origin.x << ", \"y\":" << bounds.origin.y << ", \"width\":" << bounds.size.width << ", \"height\":" << bounds.size.height << "}";
       ret << ",\"colorDepth\":" << depth;
-      ret << ",\"scaleFactor\":1";
+      ret << ",\"scaleFactor\":1,";
       ret << ",\"isPrimary\":" << (CGDisplayIsMain(online_display) ? "true" : "false");
       ret << ",\"isMirrored\":" << (CGDisplayIsInMirrorSet(online_display) ? "true" : "false");
       ret << ",\"isBuiltIn\":" << (CGDisplayIsBuiltin(online_display) ? "true" : "false");
@@ -512,9 +516,12 @@ void App::Call(Shell* shell,
   } else if (method == "GetArgv") {
     nw::Package* package = shell->GetPackage();
     CommandLine* command_line = CommandLine::ForCurrentProcess();
-    CommandLine::StringVector args = command_line->GetArgs();
-    result->AppendString(command_line->GetArgumentsString());
+    //CommandLine::StringVector args = command_line->GetArgs();
+    CommandLine::StringVector argv = command_line->original_argv();
 
+    for (unsigned i = 1; i < argv.size(); ++i) {
+      result->AppendString(argv[i]);
+    }
 
     return;
   } else if (method == "Zip") { 
