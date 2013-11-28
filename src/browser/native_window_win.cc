@@ -249,6 +249,7 @@ NativeWindowWin::NativeWindowWin(const base::WeakPtr<content::Shell>& shell,
       toolbar_(NULL),
       is_fullscreen_(false),
       is_transparent_(false),
+      is_glass_(false),
       is_minimized_(false),
       is_maximized_(false),
       is_focus_(false),
@@ -279,14 +280,12 @@ NativeWindowWin::NativeWindowWin(const base::WeakPtr<content::Shell>& shell,
   window_->SetSize(window_bounds.size());
   window_->CenterWindow(window_bounds.size());
   window_->UpdateWindowIcon();
-  bool glass = false;
-  if(manifest->HasKey(switches::kmGlass)) manifest->GetBoolean(switches::kmGlass, &glass);
-  if(glass) SetGlass();
-  if(manifest->HasKey(switches::kmTaskBar)) manifest->GetBoolean(switches::kmTaskBar, &is_intaskbar_); 
+
   if(!is_intaskbar_) {
     SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE)|WS_EX_TOOLWINDOW);
     SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, GetWindowLong(window_->GetNativeWindow(),GWL_STYLE) & ~WS_CAPTION);
   }
+
   OnViewWasResized();
 }
 
@@ -297,7 +296,6 @@ NativeWindowWin::~NativeWindowWin() {
 void NativeWindowWin::Close() {
   window_->Close();
 }
-
 
 void NativeWindowWin::Notify(const std::string& title, const std::string& text, const std::string& subtitle, bool sound) {
   NOTIFYICONDATA nid = {};
@@ -315,10 +313,8 @@ void NativeWindowWin::Notify(const std::string& title, const std::string& text, 
 void NativeWindowWin::Move(const gfx::Rect& bounds) {
   window_->SetBounds(bounds);
 
-  if(IsTransparent()) {
-    MARGINS mgMarInset = { -1, -1, -1, -1 };
-    DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset);
-  }
+  if(IsTransparent())
+    DWMNegativeMarginInset(true);
 }
 
 void NativeWindowWin::Focus(bool focus) {
@@ -380,35 +376,32 @@ bool NativeWindowWin::IsFullscreen() {
   return is_fullscreen_;
 }
 
-bool NativeWindowWin::SetGlass() {
-  MARGINS mgMarInset = { -1, -1, -1, -1 };
-  if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
-    return false;
+bool NativeWindowWin::DWMNegativeMarginInset(bool inset) {
+  if(inset) {
+    DLOG(INFO) << "Setting DwmExtendFrameIntoClientArea {-1,-1,-1,-1}";
+    MARGINS mgMarInset = { -1, -1, -1, -1 };
+    if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
+      return false;
+    }
+  } else {
+    DLOG(INFO) << "Setting DwmExtendFrameIntoClientArea {0,0,0,0}";
+    MARGINS mgMarInset = { 0, 0, 0, 0 };
+    if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
+      return false;
+    }
   }
   return true;
 }
 
+void NativeWindowWin::SetGlass(bool glass) {
+  is_glass_ = DWMNegativeMarginInset(true);
+}
+
+bool NativeWindowWin::IsGlass() {
+  return is_glass_;
+}
+
 void NativeWindowWin::SetTransparent() {
-  is_transparent_ = true;
-  
-  // Check for Windows Vista or higher, transparency isn't supported in 
-  // anything lower. 
-  //if (base::win::GetVersion() < base::win::VERSION_VISTA) {
-  //  NOTREACHED() << "The operating system does not support transparency.";
-  //  is_transparent_ = false;
-  //  return;
-  //}
-
-  // Check to see if composition is disabled, if so we have to throw an 
-  // error, there's no graceful recovery, yet. TODO: Graceful recovery.
-  //BOOL enabled = FALSE;
-  //HRESULT result = ::DwmIsCompositionEnabled(&enabled);
-  //if (!enabled || !SUCCEEDED(result)) {
-  //  NOTREACHED() << "Windows DWM composition is not enabled, transparency is not supported.";
-  //  is_transparent_ = false;
-  //  return;
-  //}
-
   // These override any other window settings, which isn't the greatest idea
   // however transparent windows (in Windows) are very tricky and are not 
   // usable with any other styles.
@@ -420,13 +413,16 @@ void NativeWindowWin::SetTransparent() {
     SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, WS_EX_LAYERED);
   }
 
-  if(SetGlass()) {
-    is_transparent_ = false;
+  is_transparent_ = DWMNegativeMarginInset(true);
+  if(!is_transparent_) {
+    DLOG(ERROR) << "Failed to set transparency, negative margins in DWM declined.";
     return;
   }
-
   // Send a message to swap frames and refresh contexts
   SetWindowPos(window_->GetNativeWindow(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+  window_->SetOpacity(0);
+  window_->set_frame_type(views::Widget::FRAME_TYPE_FORCE_CUSTOM);
+  window_->FrameTypeChanged();
 }
 
 bool NativeWindowWin::IsTransparent() {
@@ -525,20 +521,16 @@ void NativeWindowWin::SetPosition(const std::string& position) {
       window_->SetBoundsConstrained(bounds);
     }
   }
-  if(IsTransparent()) {
-    MARGINS mgMarInset = { -1, -1, -1, -1 };
-    DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset);
-  }
+  if(IsTransparent())
+    DWMNegativeMarginInset(true);
 }
 
 void NativeWindowWin::SetPosition(const gfx::Point& position) {
   gfx::Rect bounds = window_->GetWindowBoundsInScreen();
   window_->SetBounds(gfx::Rect(position, bounds.size()));
 
-  if(IsTransparent()) {
-    MARGINS mgMarInset = { -1, -1, -1, -1 };
-    DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset);
-  }
+  if(IsTransparent())
+    DWMNegativeMarginInset(true);
 }
 
 gfx::Point NativeWindowWin::GetPosition() {

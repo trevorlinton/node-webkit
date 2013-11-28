@@ -101,6 +101,8 @@ class NativeWindow {
   virtual bool IsKiosk() = 0;
   virtual void SetTransparent() = 0;
   virtual bool IsTransparent() = 0;
+  virtual void SetGlass(bool glass) = 0;
+  virtual bool IsGlass() = 0;
   virtual void SetMenu(api::Menu* menu) = 0;
   virtual void RenderViewCreated(content::RenderViewHost *render_view_host) = 0;
   virtual void Notify(const std::string& title, const std::string& text, const std::string& subtitle, bool sound) = 0;
@@ -129,7 +131,6 @@ class NativeWindow {
   content::Shell* shell() const { return shell_.get(); }
   content::WebContents* web_contents() const;
   bool has_frame() const { return has_frame_; }
-  bool IsGlass() const;
   const gfx::Image& app_icon() const { return app_icon_; }
   void CapturePage(const std::string& image_format);
 
@@ -145,7 +146,6 @@ class NativeWindow {
   base::WeakPtr<content::Shell> shell_;
 
   bool has_frame_;
-  bool is_glass_;
 
   // Icon showed in the task bar.
   gfx::Image app_icon_;

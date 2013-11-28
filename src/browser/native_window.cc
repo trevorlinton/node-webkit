@@ -71,18 +71,8 @@ NativeWindow::NativeWindow(const base::WeakPtr<content::Shell>& shell,
     : shell_(shell),
       has_frame_(true),
       capture_page_helper_(NULL) {
-  bool transparent;
-  if(manifest->GetBoolean(switches::kmTransparent, &transparent) && transparent)
-    has_frame_ = false;
-  else
-    manifest->GetBoolean(switches::kmFrame, &has_frame_);
-  manifest->GetBoolean(switches::kmGlass, &is_glass_);
 
   LoadAppIconFromPackage(manifest);
-}
-
-bool NativeWindow::IsGlass() const {
-  return is_glass_;
 }
 
 NativeWindow::~NativeWindow() {
@@ -134,8 +124,13 @@ void NativeWindow::InitFromManifest(base::DictionaryValue* manifest) {
   if (manifest->GetBoolean(switches::kmKiosk, &kiosk) && kiosk) {
     SetKiosk(kiosk);
   }
-  bool transparent;
+  bool glass = false;
+  if(manifest->GetBoolean(switches::kmGlass, &glass) && glass) {
+    SetGlass(true);
+  }
+  bool transparent = false;
   if (manifest->GetBoolean(switches::kmTransparent, &transparent) && transparent) {
+    has_frame_=false;
     SetTransparent();
 
     /* Transparent windows cannot have toolbars or other window controls */

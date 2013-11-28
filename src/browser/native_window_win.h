@@ -81,6 +81,8 @@ class NativeWindowWin : public NativeWindow,
   virtual bool IsKiosk() OVERRIDE;
   virtual void SetTransparent() OVERRIDE;
   virtual bool IsTransparent() OVERRIDE;
+  virtual void SetGlass(bool glass) OVERRIDE;
+  virtual bool IsGlass() OVERRIDE;
   virtual void SetMenu(api::Menu* menu) OVERRIDE;
   virtual void SetToolbarButtonEnabled(TOOLBAR_BUTTON button,
                                        bool enabled) OVERRIDE;
@@ -136,13 +138,14 @@ class NativeWindowWin : public NativeWindow,
  private:
   friend class content::Shell;
   void OnViewWasResized();
-  bool SetGlass();
+  bool NativeWindowWin::DWMNegativeMarginInset(bool inset);
   NativeWindowToolbarWin* toolbar_;
   views::WebView* web_view_;
   views::Widget* window_;
   bool is_fullscreen_;
   bool is_transparent_;
   bool is_intaskbar_;
+  bool is_glass_;
 
   // Flags used to prevent sending extra events.
   bool is_minimized_;

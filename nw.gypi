@@ -368,6 +368,7 @@
             '<(DEPTH)/ui/views/views.gyp:views',
             '<(DEPTH)/webkit/webkit_resources.gyp:webkit_resources',
             '<(DEPTH)/webkit/webkit_resources.gyp:webkit_strings',
+			'<(DEPTH)/chrome/chrome_resources.gyp:chrome_resources',
           ],
           'configurations': {
             'Debug_Base': {
