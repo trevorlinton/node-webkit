@@ -60,8 +60,8 @@ bool ShellRenderProcessObserver::OnControlMessageReceived(
 
 void ShellRenderProcessObserver::OnRenderProcessWillShutdown() {
   // process.emit('exit');
-  node::EmitExit(node::process);
-  node::RunAtExit();
+  // node::EmitExit(node::process);
+  // node::RunAtExit();
 }
 
 void ShellRenderProcessObserver::WebKitInitialized() {
