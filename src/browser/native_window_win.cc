@@ -842,7 +842,8 @@ void NativeWindowWin::OnViewWasResized() {
 
 void NativeWindowWin::RenderViewCreated(content::RenderViewHost *render_view_host) {
   if (is_transparent_) {
-    ((content::RenderWidgetHostViewWin *)render_view_host->GetView())->SetLayeredWindow(window_->GetNativeWindow());
+    content::RenderWidgetHostViewWin *renderer = (content::RenderWidgetHostViewWin *)render_view_host->GetView();
+    renderer->SetLayeredWindow(window_->GetNativeWindow());
   }
 }
 

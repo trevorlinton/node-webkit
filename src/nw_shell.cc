@@ -431,8 +431,7 @@ bool Shell::OnMessageReceived(const IPC::Message& message) {
 }
 
 void Shell::RenderViewCreated(RenderViewHost* render_view_host) {
-  if(window_->IsTransparent() || window_->IsGlass())
-  {
+  if(window_->IsTransparent() || window_->IsGlass()) {
     SkBitmap background;
     background.setConfig(SkBitmap::kARGB_8888_Config, 1, 1);
     background.allocPixels();
