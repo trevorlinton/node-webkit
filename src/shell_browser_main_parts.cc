@@ -224,7 +224,7 @@ bool ShellBrowserMainParts::ProcessSingletonNotificationCallback(
 #if defined(OS_WIN)
   std::string cmd = UTF16ToUTF8(command_line.GetCommandLineString());
 #else
-  std::string cmd = command_line.GetCommandLineString();
+  std::string cmd = command_line.GetCommandLineString(); 
 #endif
   static const char* const kSwitchNames[] = {
     switches::kNoSandbox,
