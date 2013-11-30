@@ -72,6 +72,8 @@ class NativeWindowCocoa : public NativeWindow {
   virtual bool IsKiosk() OVERRIDE;
   virtual void SetTransparent() OVERRIDE;
   virtual bool IsTransparent() OVERRIDE;
+  virtual void SetGlass(bool glass) OVERRIDE;
+  virtual bool IsGlass() OVERRIDE;
   virtual void SetMenu(api::Menu* menu) OVERRIDE;
   virtual void SetToolbarButtonEnabled(TOOLBAR_BUTTON button,
                                        bool enabled) OVERRIDE;
@@ -120,6 +122,7 @@ class NativeWindowCocoa : public NativeWindow {
   bool is_fullscreen_;
   bool is_kiosk_;
   bool is_transparent_;
+  bool is_glass_;
   NSRect restored_bounds_;
 
   NSInteger attention_request_id_;  // identifier from requestUserAttention
