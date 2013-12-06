@@ -278,7 +278,6 @@ enum {
   return is_glass_;
 }
 
-
 - (BOOL)getTransparent {
   return is_transparent_;
 }
@@ -349,6 +348,7 @@ NativeWindowCocoa::NativeWindowCocoa(
       is_fullscreen_(false),
       is_kiosk_(false),
       is_transparent_(false),
+      is_glass_(false),
       attention_request_id_(0),
       use_system_drag_(true),
       initial_focus_(false),    // the initial value is different from other
@@ -370,8 +370,6 @@ NativeWindowCocoa::NativeWindowCocoa(
       height);
   NSUInteger style_mask = NSTitledWindowMask | NSClosableWindowMask |
                           NSMiniaturizableWindowMask | NSTexturedBackgroundWindowMask | NSResizableWindowMask;
-  //if(is_transparent_)
-  //  style_mask = NSBorderlessWindowMask;
 
   ShellNSWindow* shell_window;
   if (has_frame_) {
@@ -389,11 +387,7 @@ NativeWindowCocoa::NativeWindowCocoa(
   }
   window_ = shell_window;
   [shell_window setShell:shell];
-  if(is_glass_) [shell_window setGlass];
   [window() setDelegate:[[NativeWindowDelegate alloc] initWithShell:shell]];
-  if(is_transparent_) {
-    SetTransparent();
-  }
   // Disable fullscreen button when 'fullscreen' is specified to false.
   bool fullscreen;
   if (!(manifest->GetBoolean(switches::kmFullscreen, &fullscreen) &&
@@ -576,6 +570,16 @@ void NativeWindowCocoa::SetTransparent() {
 
 bool NativeWindowCocoa::IsTransparent() {
   return is_transparent_;
+}
+
+bool NativeWindowCocoa::IsGlass() {
+  return is_glass_;
+}
+
+void NativeWindowCocoa::SetGlass(bool glass) {
+  ShellNSWindow* swin = (ShellNSWindow*)window();
+  [swin setGlass];
+  is_glass_=true;
 }
 
 void NativeWindowCocoa::SetNonLionFullscreen(bool fullscreen) {
