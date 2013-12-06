@@ -213,12 +213,16 @@ bool ShellContentRendererClient::goodForNode(WebKit::WebFrame* frame)
 {
   RenderViewImpl* rv = RenderViewImpl::FromWebView(frame->view());
   GURL url(frame->document().url());
+
+  // Allowed schemas, empty url's indicate a dev tools window.
+  bool is_allowed =  url.SchemeIsFile() || url.SchemeIs("app") || url.SchemeIs("embed") || url.SchemeIs("nw") || url.is_empty();
+
   //ProxyBypassRules rules;
   //rules.ParseFromString(rv->renderer_preferences_.nw_remote_page_rules);
   //bool is_nw_protocol =  || !url.is_valid(); -- !url.is_valid() is dangerous, this can be escaped.
   //(rules.Matches(url) || Proxy rules are dangerous, this can be escaped.
-  bool is_allowed =  url.SchemeIsFile() || url.SchemeIs("app") || url.SchemeIs("embed") || url.SchemeIs("nw"); // Allowed schemas
   //CommandLine::ForCurrentProcess()->HasSwitch(switches::kNodejs));   // This can accidently be triggered with kNodejs=false, tint doesnt need it.
+
   bool use_node = !frame->isNwDisabledChildFrame() && is_allowed;
   return use_node;
 }

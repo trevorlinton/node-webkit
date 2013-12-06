@@ -132,23 +132,29 @@ WindowBindings::CallObjectMethodSync(const v8::FunctionCallbackInfo<v8::Value>& 
   std::string method = *v8::String::Utf8Value(args[1]);
   content::RenderViewImpl* render_view = static_cast<content::RenderViewImpl*>(
                                                                                  content::RenderViewImpl::FromRoutingID(routing_id));
+#ifdef NODE_WEBKIT_UPSTREAM
   if (!render_view) {
     std::string msg = "Unable to get render view in " + method;
     args.GetReturnValue().Set(v8::ThrowException(v8::Exception::Error(v8::String::New(msg.c_str()))));
     return;
   }
-
-  if (method == "GetZoomLevel") {
+#endif
+  // These functions are specific to the context, thread and in need of a renderview.
+  if (method == "GetZoomLevel" && render_view) {
     float zoom_level = render_view->GetWebView()->zoomLevel();
 
     v8::Local<v8::Array> array = v8::Array::New();
     array->Set(0, v8::Number::New(zoom_level));
     args.GetReturnValue().Set(scope.Close(array));
     return;
-  }else if (method == "SetZoomLevel") {
+  } else if (method == "SetZoomLevel" && render_view) {
     double zoom_level = args[2]->ToNumber()->Value();
     render_view->OnSetZoomLevel(zoom_level);
     args.GetReturnValue().Set(v8::Undefined());
+  } else if (method=="SetZoomLevel" || method=="GetZoomLevel") {
+    std::string msg = "Unable to get render view in " + method;
+    args.GetReturnValue().Set(v8::ThrowException(v8::Exception::Error(v8::String::New(msg.c_str()))));
+    return;
   }
   args.GetReturnValue().Set(remote::CallObjectMethodSync(routing_id, object_id, "Window", method, args[2]));
 }

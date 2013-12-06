@@ -52,7 +52,7 @@
   NSWindow *window = static_cast<nw::NativeWindowCocoa *>(shell->window())->window();
   
   if([value isEqualToString:@"closeAllWindows"]) {
-    api::App::CloseAllWindows();
+    nwapi::App::CloseAllWindows();
   } else if([value isEqualToString:@"orderFrontStandardAboutPanel"]) {
     [NSApp performSelector:@selector(orderFrontStandardAboutPanel:)];
   } else if([value isEqualToString:@"hide"]) {

@@ -776,7 +776,7 @@ bool NativeWindowCocoa::IsKiosk() {
 }
 
 void NativeWindowCocoa::SetMenu(nwapi::Menu* menu) {
-#ifdef 0
+#ifdef NODE_WEBKIT_UPSTREAM
   bool no_edit_menu = false;
   shell_->GetPackage()->root()->GetBoolean("no-edit-menu", &no_edit_menu);
 

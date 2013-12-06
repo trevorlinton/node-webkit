@@ -28,14 +28,14 @@
 
 @interface MacTrayObserver : NSObject {
  @private
-  api::Tray* backing;
+  nwapi::Tray* backing;
 }
-- (void)setBacking:(api::Tray*)back;
+- (void)setBacking:(nwapi::Tray*)back;
 - (void)onClick:(id)sender;
 @end
 
 @implementation MacTrayObserver
-- (void)setBacking:(api::Tray*)back {
+- (void)setBacking:(nwapi::Tray*)back {
   backing = back;
 }
 - (void)onClick:(id)sender {
