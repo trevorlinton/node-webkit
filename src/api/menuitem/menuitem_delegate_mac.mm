@@ -33,7 +33,7 @@
 
 @implementation MenuItemDelegate
 
--(id)initWithMenuItem: (api::MenuItem*)item {
+-(id)initWithMenuItem: (nwapi::MenuItem*)item {
   if ([super init]) {
     menu_item_ = item;
   }

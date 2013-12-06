@@ -36,7 +36,7 @@
 #include "ui/gfx/image/image_skia_rep.h"
 #include "ui/gfx/codec/png_codec.h"
 
-namespace api {
+namespace nwapi {
 
 StatusTray* Tray::status_tray_ = NULL;
 
@@ -131,4 +131,4 @@ void Tray::Remove() {
 void Tray::SetAltIcon(const std::string& alticon_path) {
 }
 
-}  // namespace api
+}  // namespace nwapi

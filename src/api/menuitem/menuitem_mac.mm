@@ -28,7 +28,7 @@
 #include "content/nw/src/browser/native_window_mac.h"
 #include "content/nw/src/nw_shell.h"
 
-namespace api {
+namespace nwapi {
 
 void MenuItem::Create(const base::DictionaryValue& option) {
   std::string type;
@@ -143,4 +143,4 @@ void MenuItem::SetSubmenu(Menu* sub_menu) {
   [menu_item_ setSubmenu:sub_menu->menu_];
 }
 
-}  // namespace api
+}  // namespace nwapi

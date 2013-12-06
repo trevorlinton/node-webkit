@@ -35,7 +35,7 @@
 #include "ui/gfx/point.h"
 #include "ui/gfx/size.h"
 
-namespace api {
+namespace nwapi {
 class Menu;
 }
 
@@ -103,9 +103,9 @@ class NativeWindow {
   virtual bool IsTransparent() = 0;
   virtual void SetGlass(bool glass) = 0;
   virtual bool IsGlass() = 0;
-  virtual void SetMenu(api::Menu* menu) = 0;
   virtual void RenderViewCreated(content::RenderViewHost *render_view_host) = 0;
   virtual void Notify(const std::string& title, const std::string& text, const std::string& subtitle, bool sound) = 0;
+  virtual void SetMenu(nwapi::Menu* menu) = 0;
   virtual void SetInitialFocus(bool accept_focus) = 0;
   virtual bool InitialFocus() = 0;
 

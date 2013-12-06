@@ -40,7 +40,7 @@ namespace content {
 class Shell;
 }
 
-namespace api {
+namespace nwapi {
 
 class Base;
 
@@ -58,6 +58,8 @@ class DispatcherHost : public content::RenderViewHostObserver {
   T* GetApiObject(int id) {
     return static_cast<T*>(GetApiObject(id));
   }
+
+  static void ClearObjectRegistry();
 
   // Send event to C++ object's corresponding js object.
   void SendEvent(Base* object,
@@ -108,8 +110,8 @@ class DispatcherHost : public content::RenderViewHostObserver {
   DISALLOW_COPY_AND_ASSIGN(DispatcherHost);
 };
 
-api::DispatcherHost* FindDispatcherHost(content::RenderViewHost* render_view_host);
+nwapi::DispatcherHost* FindDispatcherHost(content::RenderViewHost* render_view_host);
 
-}  // namespace api
+}  // namespace nwapi
 
 #endif  // CONTENT_NW_SRC_API_DISPATCHER_HOST_H_

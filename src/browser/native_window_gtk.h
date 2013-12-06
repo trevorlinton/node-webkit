@@ -63,7 +63,7 @@ class NativeWindowGtk : public NativeWindow {
   virtual void FlashFrame(bool flash) OVERRIDE;
   virtual void SetKiosk(bool kiosk) OVERRIDE;
   virtual bool IsKiosk() OVERRIDE;
-  virtual void SetMenu(api::Menu* menu) OVERRIDE;
+  virtual void SetMenu(nwapi::Menu* menu) OVERRIDE;
   virtual void SetInitialFocus(bool initial_focus) OVERRIDE;
   virtual bool InitialFocus() OVERRIDE;
   virtual void SetToolbarButtonEnabled(TOOLBAR_BUTTON button,
@@ -118,6 +118,8 @@ class NativeWindowGtk : public NativeWindow {
                        GdkEventButton*);
   CHROMEGTK_CALLBACK_1(NativeWindowGtk, gboolean, OnMouseMoveEvent,
                        GdkEventMotion*);
+  CHROMEGTK_CALLBACK_1(NativeWindowGtk, gboolean, OnWindowConfigureEvent,
+                       GdkEvent*);
 
   GtkWindow* window_;
   GtkWidget* toolbar_;
@@ -148,6 +150,11 @@ class NativeWindowGtk : public NativeWindow {
 
   // True if the window should be resizable by the user.
   bool resizable_;
+
+  int last_x_;
+  int last_y_;
+  int last_width_;
+  int last_height_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeWindowGtk);
 };

@@ -61,8 +61,14 @@ INT_PTR CALLBACK ShellLoginDialog::DialogProc(HWND dialog,
 #endif
       owner->UserCancelledAuth();
       DestroyWindow(owner->dialog_win_);
-      owner->dialog_win_ = NULL;
       break;
+    }
+    case WM_DESTROY: {
+      ShellLoginDialog* owner = reinterpret_cast<ShellLoginDialog*>(
+          GetWindowLongPtr(dialog, DWL_USER));
+      owner->dialog_win_ = NULL;
+      owner->ReleaseSoon();
+	  break;
     }
     case WM_COMMAND: {
 #if defined(_WIN64)
@@ -86,10 +92,11 @@ INT_PTR CALLBACK ShellLoginDialog::DialogProc(HWND dialog,
       } else if (LOWORD(wparam) == IDCANCEL) {
         owner->UserCancelledAuth();
       } else {
-        NOTREACHED();
+        DLOG(INFO) << "wparam is " << LOWORD(wparam);
+        // NOTREACHED();
       }
 
-      break;	
+      break;
     }
     default:
       return DefWindowProc(dialog, message, wparam, lparam);
@@ -101,16 +108,9 @@ INT_PTR CALLBACK ShellLoginDialog::DialogProc(HWND dialog,
 void ShellLoginDialog::PlatformCreateDialog(const string16& message) {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
 
-  int render_process_id;
-  int render_view_id;
-  if (!ResourceRequestInfo::ForRequest(request_)->GetAssociatedRenderView(
-          &render_process_id,  &render_view_id)) {
-    NOTREACHED();
-  }
-
   WebContents* web_contents = NULL;
   RenderViewHost* render_view_host =
-      RenderViewHost::FromID(render_process_id, render_view_id);
+      RenderViewHost::FromID(render_process_id_, render_view_id_);
   if (render_view_host)
     web_contents = WebContents::FromRenderViewHost(render_view_host);
   DCHECK(web_contents);
@@ -118,16 +118,22 @@ void ShellLoginDialog::PlatformCreateDialog(const string16& message) {
   gfx::NativeWindow parent_window =
       web_contents->GetView()->GetTopLevelNativeWindow();
   message_text_ = message;
-  dialog_win_ = CreateDialogParam(GetModuleHandle(0), 
-                                  MAKEINTRESOURCE(IDD_LOGIN), parent_window, 
+  dialog_win_ = CreateDialogParam(GetModuleHandle(0),
+                                  MAKEINTRESOURCE(IDD_LOGIN), parent_window,
                                   DialogProc, reinterpret_cast<LPARAM>(this));
+}
+
+void ShellLoginDialog::PlatformShowDialog() {
+  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
   ShowWindow(dialog_win_, SW_SHOWNORMAL);
 }
 
 void ShellLoginDialog::PlatformCleanUp() {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
-  if (this->dialog_win_) 
-    DestroyWindow(this->dialog_win_);
+  if (dialog_win_) {
+    DestroyWindow(dialog_win_);
+    dialog_win_ = NULL;
+  }
 }
 
 void ShellLoginDialog::PlatformRequestCancelled() {

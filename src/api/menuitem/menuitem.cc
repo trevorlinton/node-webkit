@@ -27,7 +27,7 @@
 
 #include <string.h>
 
-namespace api {
+namespace nwapi {
 
 MenuItem::MenuItem(int id,
                    DispatcherHost* dispatcher_host,
@@ -80,4 +80,4 @@ void MenuItem::Call(const std::string& method,
   }
 }
 
-}  // namespace api
+}  // namespace nwapi
