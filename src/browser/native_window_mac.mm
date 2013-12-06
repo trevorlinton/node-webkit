@@ -566,6 +566,12 @@ void NativeWindowCocoa::SetTransparent() {
   [swin setTransparent];
   [window() setOpaque:NO];
   [window() setBackgroundColor:[NSColor clearColor]];
+
+  // Transparent frames shouldn't show window decorations.
+  [[window() standardWindowButton:NSWindowZoomButton] setHidden:YES];
+  [[window() standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
+  [[window() standardWindowButton:NSWindowCloseButton] setHidden:YES];
+  [[window() standardWindowButton:NSWindowFullScreenButton] setHidden:YES];
 }
 
 bool NativeWindowCocoa::IsTransparent() {
