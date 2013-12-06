@@ -39,7 +39,11 @@ INT_PTR CALLBACK ShellLoginDialog::DialogProc(HWND dialog,
                                               LPARAM lparam) {
   switch (message) {
     case WM_INITDIALOG: {
+#if defined(_WIN64)
+      SetWindowLongPtr(dialog, DWLP_USER, static_cast<LONG_PTR>(lparam));
+#else
       SetWindowLongPtr(dialog, DWL_USER, static_cast<LONG_PTR>(lparam));
+#endif
       ShellLoginDialog* owner = reinterpret_cast<ShellLoginDialog*>(lparam);
       owner->dialog_win_ = dialog;
       SetDlgItemText(dialog,
@@ -48,16 +52,26 @@ INT_PTR CALLBACK ShellLoginDialog::DialogProc(HWND dialog,
       break;
     }
     case WM_CLOSE: {
+#if defined(_WIN64)
+      ShellLoginDialog* owner = reinterpret_cast<ShellLoginDialog*>(
+          GetWindowLongPtr(dialog, DWLP_USER));
+#else
       ShellLoginDialog* owner = reinterpret_cast<ShellLoginDialog*>(
           GetWindowLongPtr(dialog, DWL_USER));
+#endif
       owner->UserCancelledAuth();
       DestroyWindow(owner->dialog_win_);
       owner->dialog_win_ = NULL;
       break;
     }
     case WM_COMMAND: {
+#if defined(_WIN64)
+      ShellLoginDialog* owner = reinterpret_cast<ShellLoginDialog*>(
+          GetWindowLongPtr(dialog, DWLP_USER));
+#else
       ShellLoginDialog* owner = reinterpret_cast<ShellLoginDialog*>(
           GetWindowLongPtr(dialog, DWL_USER));
+#endif
       if (LOWORD(wparam) == IDOK) {
         string16 username;
         string16 password;
