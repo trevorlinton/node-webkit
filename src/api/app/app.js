@@ -51,6 +51,10 @@ App.prototype.setUserAgent = function(agent) {
   nw.callStaticMethodSync('App','SetUserAgent',[agent]);
 }
 
+App.prototype.getExperiments = function() {
+  return nw.callStaticMethodSync('App','GetExperiments',[]);
+}
+
 App.prototype.zip = function(zipdir, zipfile) {
   nw.callStaticMethodSync('App','Zip',[zipdir, zipfile]);
 }

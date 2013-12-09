@@ -17,7 +17,11 @@
 //  OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WH
 // ETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#include "base/prefs/pref_service.h"
 #include "base/threading/thread_restrictions.h"
+#include "chrome/browser/about_flags.h"
+#include "chrome/browser/browser_process.h"
+#include "chrome/browser/pref_service_flags_storage.h"
 #include "third_party/zlib/google/zip.h"
 #include "third_party/zlib/zlib.h"
 #include "content/nw/src/api/app/app.h"
@@ -41,6 +45,8 @@
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/render_process_host.h"
 #include "content/nw/src/net/util/embed_utils.h"
+#include "ui/base/l10n/l10n_util.h"
+
 #if defined(OS_WIN)
 #include <fcntl.h>
 #include <sys/types.h>
@@ -514,7 +520,7 @@ void App::Call(Shell* shell,
 #endif
     return;
   } else if (method == "GetArgv") {
-    nw::Package* package = shell->GetPackage();
+    //nw::Package* package = shell->GetPackage();
     CommandLine* command_line = CommandLine::ForCurrentProcess();
     //CommandLine::StringVector args = command_line->GetArgs();
     CommandLine::StringVector argv = command_line->original_argv();
@@ -560,7 +566,7 @@ void App::Call(Shell* shell,
 
     FILE *src = fopen(ssrc.c_str(), "r");
     if(src==NULL) {
-      DLOG(ERROR) << "Cannot open for read " << ssrc << " IO ERROR: " << strerror(NULL);
+      DLOG(ERROR) << "Cannot open for read " << ssrc << " IO ERROR: " << strerror(0);
       result->AppendBoolean(false);
       return;
     }
@@ -568,7 +574,7 @@ void App::Call(Shell* shell,
     FILE *dst = fopen(sdst.c_str(), "a+"); // this must remain a+, not w+
 
     if(dst==NULL) {
-      DLOG(ERROR) << "Cannot open for read/write/trunc " << ssrc << " IO ERROR: " << strerror(NULL);
+      DLOG(ERROR) << "Cannot open for read/write/trunc " << ssrc << " IO ERROR: " << strerror(0);
       result->AppendBoolean(false);
       fclose(src);
       return;
@@ -644,6 +650,23 @@ void App::Call(Shell* shell,
     std::string path;
     arguments.GetString(0, &path);
     result->AppendBoolean(SetCrashDumpPath(path.c_str()));
+    return;
+  } else if (method == "GetExperiments") {
+    size_t count = 0;
+    const about_flags::Experiment *experiments = ::about_flags::testing::GetExperiments(&count);
+    if(experiments==NULL)
+      return;
+    for (size_t i = 0; i < count; ++i) {
+      //const about_flags::Experiment& experiment = experiments[i];
+      //if(experiment != NULL) {
+        DictionaryValue* data = new DictionaryValue();
+          data->SetString("switch", experiments[i].command_line_switch);
+          data->SetString("name", l10n_util::GetStringUTF16(experiments[i].visible_name_id));
+
+          data->SetString("description", l10n_util::GetStringUTF16(experiments[i].visible_description_id));
+        result->Append(data);
+      //}
+    }
     return;
   }
 

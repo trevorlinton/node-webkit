@@ -62,6 +62,27 @@
         '-Wno-error=c++0x-compat',
       ],
       'sources': [
+        '<(DEPTH)/components/nacl/common/nacl_switches.h',
+        '<(DEPTH)/components/nacl/common/nacl_switches.cc',
+        '<(DEPTH)/chrome/common/chrome_switches.h',
+        '<(DEPTH)/chrome/common/chrome_switches.cc',
+        '<(DEPTH)/media/base/media_switches.h',
+        '<(DEPTH)/media/base/media_switches.cc',
+        '<(DEPTH)/ui/base/ui_base_switches.h',
+        '<(DEPTH)/ui/base/ui_base_switches.cc',
+        '<(DEPTH)/ui/gl/gl_switches.h',
+        '<(DEPTH)/ui/gl/gl_switches.cc',
+        '<(DEPTH)/ui/keyboard/keyboard_switches.h',
+        '<(DEPTH)/ui/keyboard/keyboard_switches.cc',
+        '<(DEPTH)/ui/message_center/message_center_switches.h',
+        '<(DEPTH)/ui/message_center/message_center_switches.cc',
+        '<(DEPTH)/ui/surface/surface_switches.h',
+        '<(DEPTH)/ui/surface/surface_switches.cc',
+        '<(DEPTH)/extensions/common/switches.h',
+        '<(DEPTH)/extensions/common/switches.cc',
+
+        '<(DEPTH)/chrome/browser/about_flags.cc',
+        '<(DEPTH)/chrome/browser/about_flags.h',
         '<(DEPTH)/chrome/browser/chrome_process_finder_win.cc',
         '<(DEPTH)/chrome/browser/chrome_process_finder_win.h',
         '<(DEPTH)/chrome/common/child_process_logging.h',
@@ -482,6 +503,27 @@
           },
           'includes': [ '../../build/grit_action.gypi' ],
         },
+        {
+          'action_name': 'chromium_strings.grd',
+          'variables': {
+            'grit_grd_file': '../../chrome/app/chromium_strings.grd',
+          },
+          'includes': [ '../../build/grit_action.gypi' ],
+        },
+        {
+          'action_name': 'generated_resources',
+          'variables': {
+            'grit_grd_file': '../../chrome/app/generated_resources.grd',
+          },
+          'includes': [ '../../build/grit_action.gypi' ],
+        },
+        {
+          'action_name': 'google_chrome_strings',
+          'variables': {
+            'grit_grd_file': '../../chrome/app/google_chrome_strings.grd',
+          },
+          'includes': [ '../../build/grit_action.gypi' ],
+        },
       ],
     },
     {
@@ -517,6 +559,7 @@
       'target_name': 'nw_pak',
       'type': 'none',
       'dependencies': [
+        '<(DEPTH)/chrome/chrome_resources.gyp:chrome_strings',
         '<(DEPTH)/content/browser/devtools/devtools_resources.gyp:devtools_resources',
         '<(DEPTH)/ui/ui.gyp:ui_resources',
         'nw_resources',
@@ -645,7 +688,7 @@
           ],
           'SubSystem': '2',  # Set /SUBSYSTEM:WINDOWS
         },
-	'VCManifestTool': {
+	  'VCManifestTool': {
           'AdditionalManifestFiles': [
             '$(ProjectDir)\\nw\\src\\nw.exe.manifest',
           ],
