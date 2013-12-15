@@ -34,7 +34,6 @@ class MediaCaptureDevicesDispatcher
   };
 
   MediaCaptureDevicesDispatcher();
-  virtual ~MediaCaptureDevicesDispatcher();
 
   // Called on IO thread when one audio device is plugged in or unplugged.
   void AudioCaptureDevicesChanged(const content::MediaStreamDevices& devices);
@@ -68,6 +67,9 @@ class MediaCaptureDevicesDispatcher
  private:
   friend class base::RefCountedThreadSafe<MediaCaptureDevicesDispatcher>;
 
+
+  virtual ~MediaCaptureDevicesDispatcher();
+  
   // Called by the public Audio/VideoCaptureDevicesChanged() functions,
   // executed on UI thread.
   void UpdateAudioDevicesOnUIThread(const content::MediaStreamDevices& devices);

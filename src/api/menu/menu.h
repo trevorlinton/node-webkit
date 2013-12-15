@@ -89,6 +89,7 @@ class Menu : public Base {
                     const base::ListValue& arguments) OVERRIDE;
 
  private:
+  friend class Toolbar;
   friend class MenuItem;
   friend class Tray;
 

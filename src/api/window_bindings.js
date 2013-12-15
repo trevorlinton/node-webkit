@@ -225,7 +225,17 @@ Window.prototype.__defineSetter__('menu', function(menu) {
 Window.prototype.__defineGetter__('menu', function() {
   return v8_util.getHiddenValue(this, 'menu');
 });
+Window.prototype.__defineSetter__('toolbar', function(toolbar) {
+  //if (v8_util.getConstructorName(toolbar) != 'Toolbar')
+  //  throw new String("'toolbar' property requries a valid Toolbar");
 
+  v8_util.setHiddenValue(this, 'toolbar', toolbar);
+  CallObjectMethod(this, 'SetToolbar', [ toolbar.id ]);
+});
+
+Window.prototype.__defineGetter__('toolbar', function() {
+  return v8_util.getHiddenValue(this, 'toolbar');
+});
 Window.prototype.__defineSetter__('isFullscreen', function(flag) {
   if (flag)
     this.enterFullscreen();

@@ -211,7 +211,7 @@ void ShellContentRendererClient::DidCreateScriptContext(
 
 bool ShellContentRendererClient::goodForNode(WebKit::WebFrame* frame)
 {
-  RenderViewImpl* rv = RenderViewImpl::FromWebView(frame->view());
+  //RenderViewImpl* rv = RenderViewImpl::FromWebView(frame->view());
   GURL url(frame->document().url());
 
   // Allowed schemas, empty url's indicate a dev tools window.

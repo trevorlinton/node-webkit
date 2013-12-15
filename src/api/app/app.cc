@@ -514,15 +514,10 @@ void App::Call(Shell* shell,
 #endif
     return;
   } else if (method == "GetArgv") {
-    nw::Package* package = shell->GetPackage();
     CommandLine* command_line = CommandLine::ForCurrentProcess();
-    //CommandLine::StringVector args = command_line->GetArgs();
     CommandLine::StringVector argv = command_line->original_argv();
-
-    for (unsigned i = 1; i < argv.size(); ++i) {
+    for (unsigned i = 1; i < argv.size(); ++i)
       result->AppendString(argv[i]);
-    }
-
     return;
   } else if (method == "Zip") { 
     std::string zipdir;
@@ -560,7 +555,7 @@ void App::Call(Shell* shell,
 
     FILE *src = fopen(ssrc.c_str(), "r");
     if(src==NULL) {
-      DLOG(ERROR) << "Cannot open for read " << ssrc << " IO ERROR: " << strerror(NULL);
+      DLOG(ERROR) << "Cannot open for read " << ssrc << " IO ERROR: " << strerror(0);
       result->AppendBoolean(false);
       return;
     }
@@ -568,7 +563,7 @@ void App::Call(Shell* shell,
     FILE *dst = fopen(sdst.c_str(), "a+"); // this must remain a+, not w+
 
     if(dst==NULL) {
-      DLOG(ERROR) << "Cannot open for read/write/trunc " << ssrc << " IO ERROR: " << strerror(NULL);
+      DLOG(ERROR) << "Cannot open for read/write/trunc " << ssrc << " IO ERROR: " << strerror(0);
       result->AppendBoolean(false);
       fclose(src);
       return;

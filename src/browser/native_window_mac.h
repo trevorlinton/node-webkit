@@ -75,6 +75,7 @@ class NativeWindowCocoa : public NativeWindow {
   virtual void SetGlass(bool glass) OVERRIDE;
   virtual bool IsGlass() OVERRIDE;
   virtual void SetMenu(nwapi::Menu* menu) OVERRIDE;
+  virtual void SetToolbar(nwapi::Control* ctrl) OVERRIDE;
   virtual void SetToolbarButtonEnabled(TOOLBAR_BUTTON button,
                                        bool enabled) OVERRIDE;
   virtual void SetToolbarUrlEntry(const std::string& url) OVERRIDE;
@@ -117,7 +118,7 @@ class NativeWindowCocoa : public NativeWindow {
   NSWindow* window_;
 
   // Delegate to the toolbar.
-  base::scoped_nsobject<ShellToolbarDelegate> toolbar_delegate_;
+  //base::scoped_nsobject<ShellToolbarDelegate> toolbar_delegate_;
 
   bool is_fullscreen_;
   bool is_kiosk_;

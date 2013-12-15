@@ -568,6 +568,10 @@ void NativeWindowWin::EndOffclientMouseMove() {
   ReleaseCapture();
 }
 
+void NativeWindowWin::SetToolbar(nwapi::Menu* menu) {
+  
+}
+
 void NativeWindowWin::FlashFrame(bool flash) {
   window_->FlashFrame(flash);
 }

@@ -37,6 +37,7 @@
 
 namespace nwapi {
 class Menu;
+class Control;
 }
 
 namespace base {
@@ -106,6 +107,7 @@ class NativeWindow {
   virtual void RenderViewCreated(content::RenderViewHost *render_view_host) = 0;
   virtual void Notify(const std::string& title, const std::string& text, const std::string& subtitle, bool sound) = 0;
   virtual void SetMenu(nwapi::Menu* menu) = 0;
+  virtual void SetToolbar(nwapi::Control* ctrl) = 0;
   virtual void SetInitialFocus(bool accept_focus) = 0;
   virtual bool InitialFocus() = 0;
 

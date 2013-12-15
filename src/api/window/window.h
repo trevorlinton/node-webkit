@@ -51,6 +51,9 @@ public:
   GURL url_;
   int req_id_;
   bool success_;
+protected:
+  friend class base::RefCountedThreadSafe<nwapi::CookieAPIContext, base::DefaultRefCountedThreadSafeTraits<nwapi::CookieAPIContext> >;
+  virtual ~CookieAPIContext();
 };
 
 

@@ -423,6 +423,8 @@ void Shell::ShowDevTools(const char* jail_id, bool headless) {
   int rh_id = shell->web_contents_->GetRenderProcessHost()->GetID();
   ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rh_id, chrome::kFileScheme);
   ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rh_id, "app");
+  ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rh_id, "embed");
+
   shell->is_devtools_ = true;
   shell->devtools_owner_ = weak_ptr_factory_.GetWeakPtr();
   shell->force_close_ = true;

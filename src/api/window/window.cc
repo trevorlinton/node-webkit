@@ -26,6 +26,7 @@
 #include "chrome/browser/chrome_notification_types.h"
 #include "content/nw/src/api/dispatcher_host.h"
 #include "content/nw/src/api/menu/menu.h"
+#include "content/nw/src/api/control/control.h"
 #include "content/nw/src/browser/native_window.h"
 #include "content/nw/src/nw_shell.h"
 #include "content/nw/src/shell_browser_context.h"
@@ -261,6 +262,10 @@ void Window::Call(const std::string& method,
     int id;
     if (arguments.GetInteger(0, &id))
       shell_->window()->SetMenu(dispatcher_host()->GetApiObject<Menu>(id));
+  } else if (method == "SetToolbar") {
+    int id;
+    if (arguments.GetInteger(0, &id))
+      shell_->window()->SetToolbar(dispatcher_host()->GetApiObject<Control>(id));
   } else if (method == "Reload") {
     int type;
     if (arguments.GetInteger(0, &type))
@@ -398,6 +403,10 @@ CookieAPIContext::CookieAPIContext(DispatcherHost* dispatcher_host,
 
   url_ = GURL(url);
   result_.reset(new base::ListValue);
+}
+
+CookieAPIContext::~CookieAPIContext() {
+
 }
 
 void Window::CookieGet(const base::ListValue& arguments, bool get_all) {

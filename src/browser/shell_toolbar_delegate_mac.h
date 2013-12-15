@@ -30,16 +30,17 @@ class Shell;
 }
 
 @interface ShellToolbarDelegate : NSObject<NSToolbarDelegate> {
- @private
+/* @private
   content::Shell* shell_;
   NSTextField* entry_;
   NSToolbarItem* back_button_;
   NSToolbarItem* forward_button_;
   NSToolbarItem* refresh_stop_button_;
   NSToolbarItem* devtools_button_;
-  NSToolbarItem* refresh_dev_button_;
+  NSToolbarItem* refresh_dev_button_;*/
 }
-
+- (id)initWithToolbar:(nwapi::Toolbar *)toolbar;
+/*
 - (id)initWithShell:(content::Shell*)shell;
 - (void)buttonPressed:(id)sender;
 - (void)urlEntered:(id)sender;
@@ -51,7 +52,7 @@ class Shell;
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar
      itemForItemIdentifier:(NSString *)itemIdentifier
  willBeInsertedIntoToolbar:(BOOL)flag;
-- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar;
+- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar;*/
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar;
 @end
 

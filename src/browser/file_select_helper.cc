@@ -295,7 +295,7 @@ FileSelectHelper::GetFileTypesFromAcceptType(
   //    dialog uses the first extension in the list to form the description,
   //    like "EHTML Files". This is not what we want.
   if (valid_type_count > 1 ||
-      (valid_type_count == 1 && !description_id == 0 && extensions->size() > 1))
+      (valid_type_count == 1 && extensions->size() > 1))
     description_id = IDS_CUSTOM_FILES;
 
   if (description_id) {

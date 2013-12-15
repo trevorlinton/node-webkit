@@ -25,7 +25,7 @@
 #import "base/mac/scoped_nsobject.h"
 #include "base/strings/sys_string_conversions.h"
 #include "content/nw/src/browser/native_window.h"
-#include "content/nw/src/nw_shell.h"
+#include "content/nw/src/api/toolbar/toolbar.h"
 #include "url/gurl.h"
 
 static NSString *BackToolbarItemIdentifier = @"Back";
@@ -37,13 +37,13 @@ static NSString *ReloadDevToolbarItemIdentifier = @"RefreshDev";
 
 @implementation ShellToolbarDelegate
 
-- (id)initWithShell:(content::Shell*)shell {
+- (id)initWithToolbar:(nwapi::Toolbar *)toolbar {
   if ((self = [super init])) {
-    shell_ = shell;
+    toolbar_ = toolbar;
   }
   return self;
 }
-
+/*
 - (void)buttonPressed:(id)sender {
   switch ([sender tag]) {
     case nw::NativeWindow::BUTTON_BACK:
@@ -185,5 +185,8 @@ static NSString *ReloadDevToolbarItemIdentifier = @"RefreshDev";
       ReloadDevToolbarItemIdentifier,
       nil];
 }
-
+*/
+- (NSArray *) toolbarDefaultItemIdentifiers: (NSToolbar *)toolbar {
+    return [NSArray arrayWithObjects:nil];
+}
 @end

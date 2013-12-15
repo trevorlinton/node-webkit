@@ -31,6 +31,7 @@
 #include "content/nw/src/api/clipboard/clipboard.h"
 #include "content/nw/src/api/menu/menu.h"
 #include "content/nw/src/api/menuitem/menuitem.h"
+#include "content/nw/src/api/control/control.h"
 #include "content/nw/src/api/shell/shell.h"
 #include "content/nw/src/api/tray/tray.h"
 #include "content/nw/src/api/window/window.h"
@@ -127,6 +128,8 @@ void DispatcherHost::OnAllocateObject(int object_id,
   } else if (type == "MenuItem") {
     objects_registry_.AddWithID(
         new MenuItem(object_id, this, option), object_id);
+  } else if (type == "Control") {
+    objects_registry_.AddWithID(new Control(object_id, this, option), object_id);
   } else if (type == "Tray") {
     objects_registry_.AddWithID(new Tray(object_id, this, option), object_id);
   } else if (type == "Clipboard") {

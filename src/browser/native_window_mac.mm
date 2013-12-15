@@ -24,11 +24,11 @@
 #include "base/strings/sys_string_conversions.h"
 #include "base/values.h"
 #import "chrome/browser/ui/cocoa/custom_frame_view.h"
+#include "content/nw/src/api/control/control.h"
 #include "content/nw/src/api/menu/menu.h"
 #include "content/nw/src/api/app/app.h"
 #include "content/nw/src/browser/chrome_event_processing_window.h"
 #include "content/nw/src/browser/native_window_helper_mac.h"
-#include "content/nw/src/browser/shell_toolbar_delegate_mac.h"
 #include "content/nw/src/browser/standard_menus_mac.h"
 #include "content/nw/src/common/shell_switches.h"
 #include "content/nw/src/nw_package.h"
@@ -665,6 +665,10 @@ void NativeWindowCocoa::SetNonLionFullscreen(bool fullscreen) {
     shell()->SendEvent("leave-fullscreen");
 }
 
+void NativeWindowCocoa::SetToolbar(nwapi::Control* toolbar) {
+  [window() setToolbar:(NSToolbar *)toolbar->GetNSObject()];
+}
+
 void NativeWindowCocoa::SetSize(const gfx::Size& size) {
   NSRect frame = [window_ frame];
   frame.origin.y -= size.height() - frame.size.height;
@@ -815,7 +819,7 @@ void NativeWindowCocoa::HandleMouseEvent(NSEvent* event) {
 }
 
 void NativeWindowCocoa::AddToolbar() {
-  if (!has_frame_)
+  /*if (!has_frame_)
     return;
 
   // create the toolbar object
@@ -833,23 +837,23 @@ void NativeWindowCocoa::AddToolbar() {
   [toolbar setDelegate:toolbar_delegate_];
 
   // attach the toolbar to our window
-  [window() setToolbar:toolbar];
+  [window() setToolbar:toolbar];*/
 }
 
 void NativeWindowCocoa::SetToolbarButtonEnabled(TOOLBAR_BUTTON button_id,
                                                 bool enabled) {
-  if (toolbar_delegate_)
-    [toolbar_delegate_ setEnabled:enabled forButton:button_id];
+  /*if (toolbar_delegate_)
+    [toolbar_delegate_ setEnabled:enabled forButton:button_id];*/
 }
 
 void NativeWindowCocoa::SetToolbarUrlEntry(const std::string& url) {
-  if (toolbar_delegate_)
-    [toolbar_delegate_ setUrl:base::SysUTF8ToNSString(url)];
+  /*if (toolbar_delegate_)
+    [toolbar_delegate_ setUrl:base::SysUTF8ToNSString(url)];*/
 }
   
 void NativeWindowCocoa::SetToolbarIsLoading(bool loading) {
-  if (toolbar_delegate_)
-    [toolbar_delegate_ setIsLoading:loading];
+  /*if (toolbar_delegate_)
+    [toolbar_delegate_ setIsLoading:loading];*/
 }
 
 void NativeWindowCocoa::UpdateDraggableRegions(
