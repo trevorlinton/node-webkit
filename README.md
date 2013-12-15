@@ -4,5 +4,3 @@
 * Github: https://github.com/trueinteractions/tint/
 
 **This repo is WIP upstream.  The main Github (above) contains latest stable.**
-
-
