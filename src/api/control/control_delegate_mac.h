@@ -8,13 +8,14 @@ namespace nwapi {
 }
 @interface ControlDelegateMac : NSObject <NSToolbarDelegate> {
 @private
-  NSMutableArray *items_;
   NSObject *control_;
 }
 @property base::DictionaryValue *options;
-@property (copy) NSString *name;
-@property (copy) NSString *type;
-- (id)initWithOptions:(const base::DictionaryValue&)option;
+@property nwapi::Control *native;
+@property (retain) NSString *name;
+@property (retain) NSString *type;
+@property (retain) NSMutableArray *items;
+- (id)initWithOptions:(const base::DictionaryValue&)option nativeObject:(nwapi::Control *)obj;
 - (void)append:(nwapi::Control *)item;
 - (void)insert:(nwapi::Control *)item atIndex:(int)pos;
 - (void)removeAtIndex:(int)pos;
@@ -26,5 +27,14 @@ namespace nwapi {
 - (void)toolbarWillAddItem:(NSNotification *)notification;
 - (void)processOptions:(const base::DictionaryValue&)option;
 - (NSObject *)getBackObj;
+/** Events & Responder **/
+- (BOOL)acceptsFirstResponder;
+- (void)mouseDown:(NSEvent *)theEvent;
+- (void)mouseUp:(NSEvent *)theEvent;
+- (void)mouseMoved:(NSEvent *)theEvent;
+- (void)mouseEntered:(NSEvent *)theEvent;
+- (void)mouseExited:(NSEvent *)theEvent;
+- (void)keyDown:(NSEvent *)theEvent;
+- (void)keyUp:(NSEvent *)theEvent;
 @end
 #endif

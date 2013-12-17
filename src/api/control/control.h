@@ -73,6 +73,19 @@ class Control : public Base {
   void Insert(Control* control, int pos);
   void Remove(Control* control, int pos);
   void ProcessOptions(const base::DictionaryValue& options);
+
+  void OnClick();
+  void OnFocus();
+  void OnBlur();
+  void OnMouseDown();
+  void OnMouseUp();
+  void OnKeyDown();
+  void OnKeyUp();
+  void OnValueChange();
+  void OnMouseEnter();
+  void OnMouseExit();
+  void OnMouseMove();
+
   std::string GetName();
   std::string GetType();
   base::DictionaryValue *GetOptions();
@@ -80,13 +93,6 @@ class Control : public Base {
   NSObject *GetNSObject();
 #endif
  private:
-  friend class MenuItem;
-  friend class Menu;
-  
-  std::string type_;
-  std::string name_;
-  base::DictionaryValue *options_;
-
 #if defined(OS_MACOSX)
   friend class nw::NativeWindowCocoa;
 #if __OBJC__

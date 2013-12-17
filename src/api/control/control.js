@@ -59,4 +59,64 @@ Control.prototype.removeAt = function(i) {
   this.items.splice(i, 1);
 }
 
+Control.prototype.handleEvent = function(ev) {
+  if (ev == 'click') {
+    // Emit click handler
+    if (typeof this.click == 'function')
+      this.click();
+  }
+  if (ev == 'focus') {
+    // Emit click handler
+    if (typeof this.focus == 'function')
+      this.focus();
+  }
+  if (ev == 'blur') {
+    // Emit click handler
+    if (typeof this.blur == 'function')
+      this.blur();
+  }
+  if (ev == 'mousedown') {
+    // Emit click handler
+    if (typeof this.mousedown == 'function')
+      this.mousedown();
+  }
+  if (ev == 'mouseup') {
+    // Emit click handler
+    if (typeof this.mouseup == 'function')
+      this.mouseup();
+  }
+  if (ev == 'keydown') {
+    // Emit click handler
+    if (typeof this.keydown == 'function')
+      this.keydown();
+  }
+  if (ev == 'keyup') {
+    // Emit click handler
+    if (typeof this.keyup == 'function')
+      this.keyup();
+  }
+  if (ev == 'valuechange') {
+    // Emit click handler
+    if (typeof this.valuechange == 'function')
+      this.valuechange();
+  }
+  if (ev == 'mouseenter') {
+    // Emit click handler
+    if (typeof this.mouseenter == 'function')
+      this.mouseenter();
+  }
+  if (ev == 'mouseexit') {
+    // Emit click handler
+    if (typeof this.mouseexit == 'function')
+      this.mouseexit();
+  }
+  if (ev == 'mousemove') {
+    // Emit click handler
+    if (typeof this.mousemove == 'function')
+      this.mousemove();
+  }
+  // Emit generate event handler
+  exports.Base.prototype.handleEvent.apply(this, arguments);
+}
+
 exports.Control = Control;

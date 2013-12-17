@@ -19,7 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #import <Cocoa/Cocoa.h>
-
+#include "content/nw/src/api/dispatcher_host.h"
 #include "base/message_loop/message_loop.h"
 #include "base/mac/scoped_sending_event.h"
 #include "base/values.h"
@@ -32,7 +32,7 @@
 namespace nwapi {
 
 void Control::Create(const base::DictionaryValue& option) {
-  control_delegate_ = [[ControlDelegateMac alloc] initWithOptions:option];
+  control_delegate_ = [[ControlDelegateMac alloc] initWithOptions:option nativeObject:this];
 }
 
 void Control::Destroy() {
@@ -75,6 +75,51 @@ base::DictionaryValue *Control::GetOptions() {
 
 NSObject *Control::GetNSObject() {
   return [control_delegate_ getBackObj];
+}
+
+void Control::OnClick() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "click", args);
+}
+void Control::OnFocus() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "focus", args);
+}
+void Control::OnBlur() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "blur", args);
+}
+void Control::OnMouseDown() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "mousedown", args);
+}
+void Control::OnMouseUp() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "mouseup", args);
+}
+void Control::OnKeyDown() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "keydown", args);
+}
+void Control::OnKeyUp() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "keyup", args);
+}
+void Control::OnValueChange() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "valuechange", args);
+}
+void Control::OnMouseEnter() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "mouseenter", args);
+}
+void Control::OnMouseExit() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "mouseexit", args);
+}
+void Control::OnMouseMove() {
+  base::ListValue args;
+  dispatcher_host()->SendEvent(this, "mousemove", args);
 }
 
 }  // namespace nwapi
