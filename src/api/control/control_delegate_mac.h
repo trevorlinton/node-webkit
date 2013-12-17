@@ -9,8 +9,8 @@ namespace nwapi {
 @interface ControlDelegateMac : NSObject <NSToolbarDelegate> {
 @private
   NSObject *control_;
+  base::DictionaryValue *options;
 }
-@property base::DictionaryValue *options;
 @property nwapi::Control *native;
 @property (retain) NSString *name;
 @property (retain) NSString *type;
@@ -19,14 +19,23 @@ namespace nwapi {
 - (void)append:(nwapi::Control *)item;
 - (void)insert:(nwapi::Control *)item atIndex:(int)pos;
 - (void)removeAtIndex:(int)pos;
+- (NSObject *)getBackObj;
+- (base::DictionaryValue *)getOptions;
+- (void)setOptions:(const base::DictionaryValue&)option;
+
+- (base::ListValue *)getValue;
+- (void)setValue:(const base::ListValue&)value;
 /** NSToolbar Delegate **/
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar;
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag;
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar;
 - (void)toolbarDidRemoveItem:(NSNotification *)notification;
 - (void)toolbarWillAddItem:(NSNotification *)notification;
-- (void)processOptions:(const base::DictionaryValue&)option;
-- (NSObject *)getBackObj;
+
+@end
+
+@interface TintButton : NSButton
+@property nwapi::Control *native;
 /** Events & Responder **/
 - (BOOL)acceptsFirstResponder;
 - (void)mouseDown:(NSEvent *)theEvent;

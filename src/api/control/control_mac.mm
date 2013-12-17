@@ -57,10 +57,22 @@ void Control::Remove(Control* control, int pos) {
   }
 }
 
-void Control::ProcessOptions(const base::DictionaryValue& option) {
-  [control_delegate_ processOptions:option];
+void Control::SetOptions(const base::DictionaryValue& option) {
+  [control_delegate_ setOptions:option];
 }
 
+base::DictionaryValue *Control::GetOptions() {
+  return [control_delegate_ getOptions];
+}
+
+void Control::SetValue(const base::ListValue& option) {
+  //[control_delegate_ processOptions:option];
+}
+
+base::ListValue *Control::GetValue() {
+  //[control_delegate_ processOptions:option];
+  return NULL;
+}
 std::string Control::GetName() {
   return std::string([[control_delegate_ name] UTF8String]);
 }
@@ -69,9 +81,6 @@ std::string Control::GetType() {
   return std::string([[control_delegate_ type] UTF8String]);
 }
 
-base::DictionaryValue *Control::GetOptions() {
-  return [control_delegate_ options];
-}
 
 NSObject *Control::GetNSObject() {
   return [control_delegate_ getBackObj];

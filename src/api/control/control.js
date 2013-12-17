@@ -21,7 +21,6 @@
 var v8_util = process.binding('v8_util');
 
 function Control(option) {
-  if(typeof(option.customizable) == undefined) option.customizable = true;
   v8_util.setHiddenValue(this, 'items', []);
   nw.allocateObject(this, option);
 }
@@ -59,6 +58,22 @@ Control.prototype.removeAt = function(i) {
   this.items.splice(i, 1);
 }
 
+Control.prototype.setOptions = function(i) {
+  nw.callObjectMethod(this, 'Remove', [ this.items[i].id, i ]);
+  this.items.splice(i, 1);
+}
+Control.prototype.getOptions = function() {
+  return nw.callObjectMethodSync(this, 'GetOptions', []);
+}
+Control.prototype.setOptions = function(i) {
+  return nw.callObjectMethod(this, 'SetOptions', [i]);
+}
+Control.prototype.getOptions = function() {
+  return nw.callObjectMethodSync(this, 'GetValue', []);
+}
+Control.prototype.setOptions = function(i) {
+  return nw.callObjectMethod(this, 'SetValue', [i]);
+}
 Control.prototype.handleEvent = function(ev) {
   if (ev == 'click') {
     // Emit click handler

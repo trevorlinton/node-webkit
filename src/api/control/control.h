@@ -66,14 +66,22 @@ class Control : public Base {
 
   virtual void Call(const std::string& method,
                     const base::ListValue& arguments) OVERRIDE;
-  // Platform-independent implementations
+  virtual void CallSync(const std::string& method,
+                        const base::ListValue& arguments,
+                        base::ListValue* result) OVERRIDE;
+
+  // Configuring a control.
   void Create(const base::DictionaryValue& option);
   void Destroy();
   void Append(Control* control);
   void Insert(Control* control, int pos);
   void Remove(Control* control, int pos);
-  void ProcessOptions(const base::DictionaryValue& options);
+  void SetOptions(const base::DictionaryValue& options);
+  base::DictionaryValue *GetOptions();
+  void SetValue(const base::ListValue& value);
+  base::ListValue *GetValue();
 
+  // All control possible events
   void OnClick();
   void OnFocus();
   void OnBlur();
@@ -88,7 +96,6 @@ class Control : public Base {
 
   std::string GetName();
   std::string GetType();
-  base::DictionaryValue *GetOptions();
 #if __OBJC__
   NSObject *GetNSObject();
 #endif

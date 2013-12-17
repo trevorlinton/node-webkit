@@ -61,10 +61,25 @@ void Control::Call(const std::string& method,
     arguments.GetInteger(0, &object_id);
     const base::DictionaryValue* values;
     arguments.GetDictionary(1, &values);
-    ProcessOptions(*values);
+    SetOptions(*values);
+  } else if (method == "SetValue") {
+    SetValue(arguments);
   } else {
     NOTREACHED() << "Invalid call to Control method:" << method
                  << " arguments:" << arguments;
+  }
+}
+
+void Control::CallSync(const std::string& method,
+                      const base::ListValue& arguments,
+                      base::ListValue* result) {
+  if (method == "GetOptions") {
+    result->Set(0,GetOptions());
+  } else if (method == "GetValue") {
+    result->Set(0,GetValue());
+  } else {
+    NOTREACHED() << "Invalid call to Control method:" << method
+    << " arguments:" << arguments;
   }
 }
 
