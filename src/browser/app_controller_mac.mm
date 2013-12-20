@@ -20,6 +20,7 @@
 
 #include "base/command_line.h"
 #include "content/nw/src/api/app/app.h"
+#include "content/nw/src/api/menu/menu.h"
 #import "content/nw/src/browser/app_controller_mac.h"
 #include "content/nw/src/browser/standard_menus_mac.h"
 #include "content/nw/src/nw_package.h"
@@ -78,6 +79,13 @@
                     hasVisibleWindows:(BOOL)flag {
   nwapi::App::EmitReopenEvent();
   return YES;
+}
+
+- (NSMenu *)applicationDockMenu:(NSApplication *)sender {
+  if(content::Shell::GetAppMenu() != NULL)
+    return content::Shell::GetAppMenu()->GetNSMenu();
+  else
+    return nil;
 }
 
 @end

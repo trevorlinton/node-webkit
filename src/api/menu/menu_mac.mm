@@ -48,6 +48,9 @@ void Menu::Destroy() {
   [menu_ release];
 }
 
+NSMenu *Menu::GetNSMenu() {
+  return menu_;
+}
 void Menu::Append(MenuItem* menu_item) {
   [menu_ addItem:menu_item->menu_item_];
 }

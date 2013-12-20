@@ -270,6 +270,10 @@ void Window::Call(const std::string& method,
     int id;
     if (arguments.GetInteger(0, &id))
       shell_->window()->SetToolbar(dispatcher_host()->GetApiObject<Control>(id));
+  } else if (method=="SetAppMenu") {
+    int id;
+    if (arguments.GetInteger(0, &id))
+      content::Shell::SetAppMenu(dispatcher_host()->GetApiObject<nwapi::Menu>(id));
   } else if (method == "Reload") {
     int type;
     if (arguments.GetInteger(0, &type))

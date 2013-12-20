@@ -390,6 +390,12 @@ Window.prototype.setShowInTaskbar = function(flag) {
  CallObjectMethod(this, 'SetShowInTaskbar', [ flag ]);
 }
 
+Window.prototype.setAppMenu = function(menuObj) {
+
+  v8_util.setHiddenValue(this, 'appmenu', menuObj);
+  CallObjectMethod(this, 'SetAppMenu', [ menuObj.id ]);
+}
+
 Window.prototype.showDevTools = function(frm, headless) {
     var id = '';
     if (typeof frm === 'string') {

@@ -50,6 +50,7 @@
 #include "content/nw/src/api/api_messages.h"
 #include "content/nw/src/api/dispatcher_host.h"
 #include "content/nw/src/api/app/app.h"
+#include "content/nw/src/api/menu/menu.h"
 #include "content/nw/src/browser/browser_dialogs.h"
 #include "content/nw/src/browser/file_select_helper.h"
 #include "content/nw/src/browser/native_window.h"
@@ -87,6 +88,7 @@ using base::MessageLoop;
 namespace content {
 
 std::vector<Shell*> Shell::windows_;
+nwapi::Menu * Shell::appmenu_ = NULL;
 
 bool Shell::quit_message_loop_ = true;
 
@@ -112,6 +114,17 @@ Shell* Shell::Create(BrowserContext* browser_context,
 
   return shell;
 }
+
+// static
+nwapi::Menu* Shell::GetAppMenu() {
+  return appmenu_;
+}
+
+// static
+void Shell::SetAppMenu(nwapi::Menu* menu) {
+  appmenu_ = menu;
+}
+
 
 // static
 Shell* Shell::Create(WebContents* source_contents,

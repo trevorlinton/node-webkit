@@ -87,7 +87,11 @@ class Menu : public Base {
 
   virtual void Call(const std::string& method,
                     const base::ListValue& arguments) OVERRIDE;
-
+#if defined(OS_MACOSX)
+#if __OBJC__
+  NSMenu *GetNSMenu();
+#endif
+#endif
  private:
   friend class Toolbar;
   friend class MenuItem;

@@ -48,6 +48,9 @@ class NativeWindow;
 class Package;
 }
 
+namespace nwapi {
+  class Menu;
+}
 namespace content {
 
 class BrowserContext;
@@ -116,6 +119,9 @@ class Shell : public WebContentsDelegate,
   int WrapDevToolsWindow();
   // Returns the currently open windows.
   static std::vector<Shell*>& windows() { return windows_; }
+
+  static nwapi::Menu* GetAppMenu();
+  static void SetAppMenu(nwapi::Menu *);
 
   static nw::Package* GetPackage();
 
@@ -219,6 +225,7 @@ class Shell : public WebContentsDelegate,
   // A container of all the open windows. We use a vector so we can keep track
   // of ordering.
   static std::vector<Shell*> windows_;
+  static nwapi::Menu* appmenu_;
 
   // True if the destructur of Shell should post a quit closure on the current
   // message loop if the destructed Shell object was the last one.
