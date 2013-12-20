@@ -3,6 +3,7 @@
 #include "base/values.h"
 #include "content/nw/src/api/control/control.h"
 #include "content/nw/src/api/control/control_delegate_mac.h"
+#include "content/nw/src/net/util/embed_utils.h"
 
 @implementation ControlDelegateMac
 - (id)initWithOptions:(const base::DictionaryValue&)option nativeObject:(nwapi::Control *)obj {
@@ -23,18 +24,29 @@
 
     if([self.type isEqualToString:@"toolbar"]) {
       control_ = [[NSToolbar alloc] initWithIdentifier:self.name];
-      // set our controller as the control delegate
       NSToolbar *toolbar = (NSToolbar *)control_;
       [toolbar setDelegate:self];
     } else if ([self.type isEqualToString:@"button"]) {
       control_ = [[TintButton alloc] initWithFrame:NSMakeRect(1, 1, 30, 30)];
       [(TintButton *)control_ setNative:self.native];
     } else if ([self.type isEqualToString:@"searchfield"]) {
+      control_ = [[TintSearchField alloc] initWithFrame:NSMakeRect(1, 1, 30, 30)];
+      [(TintSearchField *)control_ setNative:self.native];
     } else if ([self.type isEqualToString:@"slider"]) {
+      control_ = [[TintSlider alloc] initWithFrame:NSMakeRect(1, 1, 30, 30)];
+      [(TintSlider *)control_ setNative:self.native];
     } else if ([self.type isEqualToString:@"textfield"]) {
+      control_ = [[TintSearchField alloc] initWithFrame:NSMakeRect(1, 1, 30, 30)];
+      [(TintSearchField *)control_ setNative:self.native];
     } else if ([self.type isEqualToString:@"popupbutton"]) {
+      control_ = [[TintPopUpButton alloc] initWithFrame:NSMakeRect(1, 1, 30, 30) pullsDown:YES];
+      [(TintSearchField *)control_ setNative:self.native];
     } else if ([self.type isEqualToString:@"segmentedbutton"]) {
     } else if ([self.type isEqualToString:@"comboxbox"]) {
+      control_ = [[TintComboBox alloc] initWithFrame:NSMakeRect(1, 1, 30, 30)];
+      [(TintComboBox *)control_ setNative:self.native];
+    } else if ([self.type isEqualToString:@"popupitem"]) {
+    } else if ([self.type isEqualToString:@"comboboxitem"]) {
     }
 
     [self setOptions:option];
@@ -98,29 +110,56 @@
  ** General Interface for Control Add/Remove Subcontrols
  **/
 - (void)append:(nwapi::Control *)item {
-  NSValue *obj = [NSValue valueWithPointer:item];
-  [self.items addObject:obj];
   if([self.type isEqualToString:@"toolbar"]) {
+    NSValue *obj = [NSValue valueWithPointer:item];
+    [self.items addObject:obj];
     NSString *ident = [NSString stringWithCString:item->GetName().c_str() encoding:[NSString defaultCStringEncoding]];
     [((NSToolbar *)control_)
       insertItemWithItemIdentifier:(NSString *)ident
       atIndex:[self.items indexOfObject:obj]];
+  } else if ([self.type isEqualToString:@"popupbutton"]) {
+    NSValue *obj = [NSValue valueWithPointer:item];
+    TintPopUpButton *field = (TintPopUpButton *)control_;
+    [self.items addObject:obj];
+    [field addItemWithTitle:(NSString *)item->GetNSObject()];
+  } else if ([self.type isEqualToString:@"comboxbox"]) {
+    NSValue *obj = [NSValue valueWithPointer:item];
+    TintComboBox *field = (TintComboBox *)control_;
+    [self.items addObject:obj];
+    [field addItemWithObjectValue:(NSString *)item->GetNSObject()];
   }
 }
 - (void)insert:(nwapi::Control *)item atIndex:(int)pos {
-  NSValue *obj = [NSValue valueWithPointer:item];
-  [self.items insertObject:obj atIndex:pos];
   if([self.type isEqualToString:@"toolbar"]) {
+    NSValue *obj = [NSValue valueWithPointer:item];
+    [self.items insertObject:obj atIndex:pos];
     NSString *ident = [NSString stringWithCString:item->GetName().c_str() encoding:[NSString defaultCStringEncoding]];
     [((NSToolbar *)control_)
      insertItemWithItemIdentifier:(NSString *)ident
      atIndex:[self.items indexOfObject:obj]];
+  } else if ([self.type isEqualToString:@"popupbutton"]) {
+    /* Settings for popup */
+    NSValue *obj = [NSValue valueWithPointer:item];
+    TintPopUpButton *field = (TintPopUpButton *)control_;
+    [self.items insertObject:obj atIndex:pos];
+    [field insertItemWithTitle:(NSString *)item->GetNSObject() atIndex:pos];
+  } else if ([self.type isEqualToString:@"comboxbox"]) {
+    NSValue *obj = [NSValue valueWithPointer:item];
+    TintComboBox *field = (TintComboBox *)control_;
+    [self.items insertObject:obj atIndex:pos];
+    [field insertItemWithObjectValue:(NSString *)item->GetNSObject() atIndex:pos];
   }
 }
 - (void)removeAtIndex:(int)pos {
-  [self.items removeObjectAtIndex:pos];
   if([self.type isEqualToString:@"toolbar"]) {
     [((NSToolbar *)control_) removeItemAtIndex:pos];
+    [self.items removeObjectAtIndex:pos];
+  } else if ([self.type isEqualToString:@"popupbutton"]) {
+    [((TintPopUpButton *)control_) removeItemAtIndex:pos];
+    [self.items removeObjectAtIndex:pos];
+  } else if ([self.type isEqualToString:@"popupbutton"]) {
+    [((TintComboBox *)control_) removeItemAtIndex:pos];
+    [self.items removeObjectAtIndex:pos];
   }
 }
 
@@ -140,7 +179,8 @@
   return options;
 }
 - (void)setOptions:(const base::DictionaryValue&)option {
-  if([self.type isEqualToString:@"toolbar"]) {
+  if([self.type isEqualToString:@"toolbar"])
+  {
     NSToolbar *toolbar = (NSToolbar *)control_;
 
     std::string toolbarsize;
@@ -204,8 +244,9 @@
       [toolbar setAutosavesConfiguration:NO];
 
     [toolbar setSizeMode:NSToolbarSizeModeSmall];
-  } else if ([self.type isEqualToString:@"button"]) {
-
+  }
+  else if ([self.type isEqualToString:@"button"] || [self.type isEqualToString:@"popupbutton"])
+  {
     /* Settings for button */
     NSButton *button = (NSButton *)control_;
     [button setNeedsDisplay:YES];
@@ -216,6 +257,7 @@
     std::string buttontype;
     std::string style;
     std::string gradient;
+    std::string image;
 
     // Button border
     if(option.GetBoolean("border", &border)) {
@@ -286,7 +328,114 @@
       options->SetDouble("height",height);
       [button setFrameSize:NSMakeSize(width, height)];
     }
+
+    // Button image
+    if(option.GetString("image",&image)) {
+      options->SetString("image",image);
+      if (!image.empty()) {
+        NSImage *icon;
+        embed_util::FileMetaInfo meta;
+        if(embed_util::Utility::GetFileInfo(image,&meta) && embed_util::Utility::GetFileData(&meta)) {
+          icon = [[NSImage alloc] initWithData:[NSData dataWithBytes:meta.data length:meta.data_size]];
+        } else {
+          icon = [[NSImage alloc]
+                  initWithContentsOfFile:[NSString stringWithUTF8String:image.c_str()]];
+        }
+        [icon setScalesWhenResized:YES];
+        [icon setSize:[button frame].size];
+        [button setImage:icon];
+        [icon release];
+      } else {
+        [button setImage:nil];
+      }
+    }
   }
+  else if ([self.type isEqualToString:@"combobox"] || [self.type isEqualToString:@"textfield"] || [self.type isEqualToString:@"searchfield"])
+  {
+    /* Settings for text field*/
+    NSTextField *field = (NSTextField *)control_;
+
+    bool editable;
+    bool selectable;
+    bool border;
+    bool bezeled;
+    std::string bezeledstyle;
+
+    // Text field border
+    if(option.GetBoolean("border", &border)) {
+      if(border) [field setBordered:YES];
+      else [field setBordered:NO];
+      options->SetBoolean("border",border);
+    }
+
+    // Text field bezel
+    if(option.GetBoolean("bezeled", &bezeled)) {
+      if(border) [field setBezeled:YES];
+      else [field setBezeled:NO];
+      options->SetBoolean("bezeled",bezeled);
+    }
+
+    // Text field editable
+    if(option.GetBoolean("editable", &editable)) {
+      if(border) [field setEditable:YES];
+      else [field setEditable:NO];
+      options->SetBoolean("editable",editable);
+    }
+
+    // Text field selectable
+    if(option.GetBoolean("selectable", &selectable)) {
+      if(border) [field setSelectable:YES];
+      else [field setSelectable:NO];
+      options->SetBoolean("selectable",selectable);
+    }
+
+    // Text field bezeled  style
+    if(option.GetString("bezeledstyle",&bezeledstyle)) {
+      options->SetString("bezeledstyle",bezeledstyle);
+      if(bezeledstyle=="round")
+        [field setBezelStyle:NSTextFieldRoundedBezel];
+      else
+        [field setBezelStyle:NSTextFieldSquareBezel];
+    }
+
+    double width, height;
+    if(option.GetDouble("width",&width) && option.GetDouble("height", &height)) {
+      options->SetDouble("width",width);
+      options->SetDouble("height",height);
+      [field setFrameSize:NSMakeSize(width, height)];
+    }
+  }
+  else if ([self.type isEqualToString:@"slider"])
+  {
+    /* Settings for slider */
+    TintSlider *field = (TintSlider *)control_;
+
+    double max, min;
+    if(option.GetDouble("max",&max) && option.GetDouble("min", &min)) {
+      options->SetDouble("max",max);
+      options->SetDouble("min",min);
+      [field setMaxValue:max];
+      [field setMinValue:min];
+    }
+
+    double width, height;
+    if(option.GetDouble("width",&width) && option.GetDouble("height", &height)) {
+      options->SetDouble("width",width);
+      options->SetDouble("height",height);
+      [field setFrameSize:NSMakeSize(width, height)];
+    }
+  }
+  else if ([self.type isEqualToString:@"popupitem"] || [self.type isEqualToString:@"comboboxitem"])
+  {
+    std::string label;
+
+    // Popup label (actually title)
+    if(option.GetString("label",&label)) {
+      options->SetString("label",label);
+      control_ = [NSString stringWithCString:label.c_str() encoding:[NSString defaultCStringEncoding]];
+    }
+  }
+
 }
 @end
 
@@ -318,5 +467,142 @@
 }
 @end
 
+@implementation TintTextField
+- (BOOL)acceptsFirstResponder {
+  return YES;
+}
+- (void)mouseDown:(NSEvent *)theEvent {
+  self.native->OnMouseDown();
+}
+- (void)mouseUp:(NSEvent *)theEvent {
+  self.native->OnMouseUp();
+  self.native->OnClick();
+}
+- (void)mouseMoved:(NSEvent *)theEvent {
+  self.native->OnMouseMove();
+}
+- (void)mouseEntered:(NSEvent *)theEvent {
+  self.native->OnMouseEnter();
+}
+- (void)mouseExited:(NSEvent *)theEvent {
+  self.native->OnMouseExit();
+}
+- (void)keyDown:(NSEvent *)theEvent {
+  self.native->OnKeyDown();
+}
+- (void)keyUp:(NSEvent *)theEvent {
+  self.native->OnKeyUp();
+}
+@end
 
+@implementation TintSearchField
+- (BOOL)acceptsFirstResponder {
+  return YES;
+}
+- (void)mouseDown:(NSEvent *)theEvent {
+  self.native->OnMouseDown();
+}
+- (void)mouseUp:(NSEvent *)theEvent {
+  self.native->OnMouseUp();
+  self.native->OnClick();
+}
+- (void)mouseMoved:(NSEvent *)theEvent {
+  self.native->OnMouseMove();
+}
+- (void)mouseEntered:(NSEvent *)theEvent {
+  self.native->OnMouseEnter();
+}
+- (void)mouseExited:(NSEvent *)theEvent {
+  self.native->OnMouseExit();
+}
+- (void)keyDown:(NSEvent *)theEvent {
+  self.native->OnKeyDown();
+}
+- (void)keyUp:(NSEvent *)theEvent {
+  self.native->OnKeyUp();
+}
+@end
 
+@implementation TintSlider
+- (BOOL)acceptsFirstResponder {
+  return YES;
+}
+- (void)mouseDown:(NSEvent *)theEvent {
+  self.native->OnMouseDown();
+}
+- (void)mouseUp:(NSEvent *)theEvent {
+  self.native->OnMouseUp();
+  self.native->OnClick();
+}
+- (void)mouseMoved:(NSEvent *)theEvent {
+  self.native->OnMouseMove();
+}
+- (void)mouseEntered:(NSEvent *)theEvent {
+  self.native->OnMouseEnter();
+}
+- (void)mouseExited:(NSEvent *)theEvent {
+  self.native->OnMouseExit();
+}
+- (void)keyDown:(NSEvent *)theEvent {
+  self.native->OnKeyDown();
+}
+- (void)keyUp:(NSEvent *)theEvent {
+  self.native->OnKeyUp();
+}
+@end
+
+@implementation TintPopUpButton
+- (BOOL)acceptsFirstResponder {
+  return YES;
+}
+- (void)mouseDown:(NSEvent *)theEvent {
+  self.native->OnMouseDown();
+}
+- (void)mouseUp:(NSEvent *)theEvent {
+  self.native->OnMouseUp();
+  self.native->OnClick();
+}
+- (void)mouseMoved:(NSEvent *)theEvent {
+  self.native->OnMouseMove();
+}
+- (void)mouseEntered:(NSEvent *)theEvent {
+  self.native->OnMouseEnter();
+}
+- (void)mouseExited:(NSEvent *)theEvent {
+  self.native->OnMouseExit();
+}
+- (void)keyDown:(NSEvent *)theEvent {
+  self.native->OnKeyDown();
+}
+- (void)keyUp:(NSEvent *)theEvent {
+  self.native->OnKeyUp();
+}
+@end
+
+@implementation TintComboBox
+- (BOOL)acceptsFirstResponder {
+  return YES;
+}
+- (void)mouseDown:(NSEvent *)theEvent {
+  self.native->OnMouseDown();
+}
+- (void)mouseUp:(NSEvent *)theEvent {
+  self.native->OnMouseUp();
+  self.native->OnClick();
+}
+- (void)mouseMoved:(NSEvent *)theEvent {
+  self.native->OnMouseMove();
+}
+- (void)mouseEntered:(NSEvent *)theEvent {
+  self.native->OnMouseEnter();
+}
+- (void)mouseExited:(NSEvent *)theEvent {
+  self.native->OnMouseExit();
+}
+- (void)keyDown:(NSEvent *)theEvent {
+  self.native->OnKeyDown();
+}
+- (void)keyUp:(NSEvent *)theEvent {
+  self.native->OnKeyUp();
+}
+@end

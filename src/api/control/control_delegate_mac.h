@@ -46,4 +46,69 @@ namespace nwapi {
 - (void)keyDown:(NSEvent *)theEvent;
 - (void)keyUp:(NSEvent *)theEvent;
 @end
+
+@interface TintTextField : NSTextField
+@property nwapi::Control *native;
+/** Events & Responder **/
+- (BOOL)acceptsFirstResponder;
+- (void)mouseDown:(NSEvent *)theEvent;
+- (void)mouseUp:(NSEvent *)theEvent;
+- (void)mouseMoved:(NSEvent *)theEvent;
+- (void)mouseEntered:(NSEvent *)theEvent;
+- (void)mouseExited:(NSEvent *)theEvent;
+- (void)keyDown:(NSEvent *)theEvent;
+- (void)keyUp:(NSEvent *)theEvent;
+@end
+
+@interface TintSearchField : NSSearchField
+@property nwapi::Control *native;
+/** Events & Responder **/
+- (BOOL)acceptsFirstResponder;
+- (void)mouseDown:(NSEvent *)theEvent;
+- (void)mouseUp:(NSEvent *)theEvent;
+- (void)mouseMoved:(NSEvent *)theEvent;
+- (void)mouseEntered:(NSEvent *)theEvent;
+- (void)mouseExited:(NSEvent *)theEvent;
+- (void)keyDown:(NSEvent *)theEvent;
+- (void)keyUp:(NSEvent *)theEvent;
+@end
+
+@interface TintSlider : NSSlider
+@property nwapi::Control *native;
+/** Events & Responder **/
+- (BOOL)acceptsFirstResponder;
+- (void)mouseDown:(NSEvent *)theEvent;
+- (void)mouseUp:(NSEvent *)theEvent;
+- (void)mouseMoved:(NSEvent *)theEvent;
+- (void)mouseEntered:(NSEvent *)theEvent;
+- (void)mouseExited:(NSEvent *)theEvent;
+- (void)keyDown:(NSEvent *)theEvent;
+- (void)keyUp:(NSEvent *)theEvent;
+@end
+
+@interface TintPopUpButton : NSPopUpButton
+@property nwapi::Control *native;
+/** Events & Responder **/
+- (BOOL)acceptsFirstResponder;
+- (void)mouseDown:(NSEvent *)theEvent;
+- (void)mouseUp:(NSEvent *)theEvent;
+- (void)mouseMoved:(NSEvent *)theEvent;
+- (void)mouseEntered:(NSEvent *)theEvent;
+- (void)mouseExited:(NSEvent *)theEvent;
+- (void)keyDown:(NSEvent *)theEvent;
+- (void)keyUp:(NSEvent *)theEvent;
+@end
+
+@interface TintComboBox : NSComboBox
+@property nwapi::Control *native;
+/** Events & Responder **/
+- (BOOL)acceptsFirstResponder;
+- (void)mouseDown:(NSEvent *)theEvent;
+- (void)mouseUp:(NSEvent *)theEvent;
+- (void)mouseMoved:(NSEvent *)theEvent;
+- (void)mouseEntered:(NSEvent *)theEvent;
+- (void)mouseExited:(NSEvent *)theEvent;
+- (void)keyDown:(NSEvent *)theEvent;
+- (void)keyUp:(NSEvent *)theEvent;
+@end
 #endif
