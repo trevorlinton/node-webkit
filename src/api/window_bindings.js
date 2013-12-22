@@ -381,12 +381,7 @@ Window.prototype.setBadgeCount = function(count) {
 }
 
 Window.prototype.setShowInTaskbar = function(flag) {
-  if(flag ==false){
-    Window.title = '-';
-  }
-
-  flag = Boolean(flag);
-
+ flag = Boolean(flag);
  CallObjectMethod(this, 'SetShowInTaskbar', [ flag ]);
 }
 

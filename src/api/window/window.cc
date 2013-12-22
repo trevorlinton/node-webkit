@@ -323,10 +323,6 @@ void Window::CallSync(const std::string& method,
     result->AppendInteger(position.y());
   } else if (method == "IsDevToolsOpen") {
     result->AppendBoolean(shell_->devToolsOpen());
-  } else if (method == "SetShowInTaskbar") {
-    bool show;
-    arguments.GetBoolean(0, &show);
-    shell_->window()->SetShowInTaskbar(show);
   } else if (method == "ShowDevTools") {
     std::string jail_id;
     bool headless = false;

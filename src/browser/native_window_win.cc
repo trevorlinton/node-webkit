@@ -285,10 +285,8 @@ NativeWindowWin::NativeWindowWin(const base::WeakPtr<content::Shell>& shell,
   window_->CenterWindow(window_bounds.size());
   window_->UpdateWindowIcon();
 
-  if(!is_intaskbar_) {
-    SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE)|WS_EX_TOOLWINDOW);
-    SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, GetWindowLong(window_->GetNativeWindow(),GWL_STYLE) & ~WS_CAPTION);
-  }
+  if(!is_intaskbar_)
+    SetShowInTaskbar(false);
 
   OnViewWasResized();
 }
@@ -475,6 +473,13 @@ void NativeWindowWin::SetBadgeCount(int count) {
 }
 
 void NativeWindowWin::SetShowInTaskbar(bool show) {
+  if(show) {
+    SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE)|WS_EX_TOOLWINDOW);
+    SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, GetWindowLong(window_->GetNativeWindow(),GWL_STYLE) & ~WS_CAPTION);
+  } else {
+    SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE) & ~WS_EX_TOOLWINDOW);
+    SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, GetWindowLong(window_->GetNativeWindow(),GWL_STYLE) | WS_CAPTION);
+  }
    /*if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
     if (hidden_owner_window_.get() == NULL) {
       hidden_owner_window_.reset(new HiddenOwnerWindow());
