@@ -603,38 +603,44 @@ void NativeWindowCocoa::SetTransparent() {
   // events to fall through by ignoring them, hopefully theres a better way of implementing this.
   [window_ setAcceptsMouseMovedEvents:YES];
   [NSEvent addLocalMonitorForEventsMatchingMask:NSAnyEventMask handler:^(NSEvent *theEvent) {
-    if([NSEvent pressedMouseButtons] == 1 << 0 ||
-       [NSEvent pressedMouseButtons] == 1 << 1) {
-      if([window_ ignoresMouseEvents] == YES) {
+
+    // Even if we fall over a transparent patch if the mouse buttons are down
+    // go ahead and keep tracking events since its a mouse drag.
+    if([NSEvent pressedMouseButtons] == 1 << 0
+       || [NSEvent pressedMouseButtons] == 1 << 1) {
+
+      if([window_ ignoresMouseEvents] == YES)
         [window_ setIgnoresMouseEvents:NO];
-//        DLOG(WARNING) << "Listening to mouse events (mouseDown).";
-      }
+
       return theEvent;
     } else {
       NSPoint point = [NSEvent mouseLocation];
-      CGImageRef image = CGWindowListCreateImage(CGRectMake(point.x,point.y,1,1),
-                                                 kCGWindowListOptionIncludingWindow | kCGWindowListOptionOnScreenAboveWindow,
-                                                 [window_ windowNumber],
-                                                 kCGWindowImageDefault);
+      NSScreen *screen = NULL;
+
+      for (NSScreen *candidate in [NSScreen screens])
+        if (NSPointInRect(point, [candidate frame]))
+            screen = candidate;
+
+      if(screen == NULL)
+        return theEvent;
+
+      CGImageRef image = CGWindowListCreateImage(CGRectMake(point.x,[screen frame].size.height - point.y,1,1),
+        kCGWindowListOptionIncludingWindow|kCGWindowListOptionOnScreenAboveWindow|kCGWindowListOptionOnScreenBelowWindow,
+        [window_ windowNumber],
+        kCGWindowImageDefault);
+
       NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithCGImage:image];
       CGImageRelease(image);
       NSColor *color = [bitmap colorAtX:0 y:0];
       [bitmap release];
 
-//      DLOG(WARNING) << "Got color:("<< [color redComponent] << "," << [color blueComponent] << ","<< [color greenComponent] << "," << [color alphaComponent] << " at point (" << point.x << "," << point.y << ")";
-
-
-      if([color alphaComponent] == 0.0f) {
-        if([window_ ignoresMouseEvents] == NO) {
+      if ([color alphaComponent] == 0.0f)
+        if([window_ ignoresMouseEvents] == NO)
           [window_ setIgnoresMouseEvents:YES];
-//          DLOG(WARNING) << "Ignoring mouse events.";
-        }
-      } else {
-        if([window_ ignoresMouseEvents] == YES) {
+      else
+        if([window_ ignoresMouseEvents] == YES)
           [window_ setIgnoresMouseEvents:NO];
-//          DLOG(WARNING) << "Listening to mouse events.";
-        }
-      }
+
       return theEvent;
     }
   }];
