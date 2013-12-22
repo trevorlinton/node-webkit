@@ -4,6 +4,8 @@
 #include "content/nw/src/api/control/control.h"
 #include "content/nw/src/api/control/control_delegate_mac.h"
 #include "content/nw/src/net/util/embed_utils.h"
+#include "content/nw/src/nw_shell.h"
+#include "content/nw/src/nw_package.h"
 
 @implementation ControlDelegateMac
 - (id)initWithOptions:(const base::DictionaryValue&)option nativeObject:(nwapi::Control *)obj {
@@ -249,7 +251,6 @@
   {
     /* Settings for button */
     NSButton *button = (NSButton *)control_;
-    [button setNeedsDisplay:YES];
 
     bool border;
     std::string label;
@@ -321,14 +322,6 @@
       else if(gradient == "convexweak") [button setGradientType:NSGradientConvexWeak];
     } */
 
-    // Button height and width
-    double width, height;
-    if(option.GetDouble("width",&width) && option.GetDouble("height", &height)) {
-      options->SetDouble("width",width);
-      options->SetDouble("height",height);
-      [button setFrameSize:NSMakeSize(width, height)];
-    }
-
     // Button image
     if(option.GetString("image",&image)) {
       options->SetString("image",image);
@@ -338,8 +331,9 @@
         if(embed_util::Utility::GetFileInfo(image,&meta) && embed_util::Utility::GetFileData(&meta)) {
           icon = [[NSImage alloc] initWithData:[NSData dataWithBytes:meta.data length:meta.data_size]];
         } else {
+          nw::Package* pkg = content::Shell::GetPackage();
           icon = [[NSImage alloc]
-                  initWithContentsOfFile:[NSString stringWithUTF8String:image.c_str()]];
+                  initWithContentsOfFile:[NSString stringWithUTF8String:pkg->path().AppendASCII(image.c_str()).AsUTF8Unsafe().c_str()]];
         }
         [icon setScalesWhenResized:YES];
         [icon setSize:[button frame].size];
@@ -349,6 +343,16 @@
         [button setImage:nil];
       }
     }
+
+    // Button height and width
+    double width, height;
+    if(option.GetDouble("width",&width) && option.GetDouble("height", &height)) {
+      options->SetDouble("width",width);
+      options->SetDouble("height",height);
+      [button setFrameSize:NSMakeSize(width, height)];
+    } else
+      [button sizeToFit];
+    [button setNeedsDisplay:YES];
   }
   else if ([self.type isEqualToString:@"combobox"] || [self.type isEqualToString:@"textfield"] || [self.type isEqualToString:@"searchfield"])
   {
@@ -403,7 +407,9 @@
       options->SetDouble("width",width);
       options->SetDouble("height",height);
       [field setFrameSize:NSMakeSize(width, height)];
-    }
+    } else
+      [field sizeToFit];
+    [field setNeedsDisplay:YES];
   }
   else if ([self.type isEqualToString:@"slider"])
   {
@@ -423,7 +429,9 @@
       options->SetDouble("width",width);
       options->SetDouble("height",height);
       [field setFrameSize:NSMakeSize(width, height)];
-    }
+    } else
+      [field sizeToFit];
+    [field setNeedsDisplay:YES];
   }
   else if ([self.type isEqualToString:@"popupitem"] || [self.type isEqualToString:@"comboboxitem"])
   {
@@ -440,113 +448,185 @@
 @end
 
 @implementation TintButton
+- (id)initWithFrame:(NSRect)frame {
+  NSTrackingArea *trackingArea;
+  self = [super initWithFrame:frame];
+  if (self) {
+    trackingArea = [[NSTrackingArea alloc] initWithRect:frame
+                                                options: (NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow )
+                                                  owner:self userInfo:nil];
+    [self addTrackingArea:trackingArea];
+  }
+  return self;
+}
 - (BOOL)acceptsFirstResponder {
   return YES;
 }
 - (void)mouseDown:(NSEvent *)theEvent {
+  [super mouseDown:theEvent];
   self.native->OnMouseDown();
 }
 - (void)mouseUp:(NSEvent *)theEvent {
+  [super mouseUp:theEvent];
   self.native->OnMouseUp();
   self.native->OnClick();
 }
 - (void)mouseMoved:(NSEvent *)theEvent {
+  [super mouseMoved:theEvent];
   self.native->OnMouseMove();
 }
 - (void)mouseEntered:(NSEvent *)theEvent {
+  [super mouseEntered:theEvent];
   self.native->OnMouseEnter();
 }
 - (void)mouseExited:(NSEvent *)theEvent {
+  [super mouseExited:theEvent];
   self.native->OnMouseExit();
 }
 - (void)keyDown:(NSEvent *)theEvent {
+  [super keyDown:theEvent];
   self.native->OnKeyDown();
 }
 - (void)keyUp:(NSEvent *)theEvent {
+  [super keyUp:theEvent];
   self.native->OnKeyUp();
 }
 @end
 
 @implementation TintTextField
+- (id)initWithFrame:(NSRect)frame {
+  NSTrackingArea *trackingArea;
+  self = [super initWithFrame:frame];
+  if (self) {
+    trackingArea = [[NSTrackingArea alloc] initWithRect:frame
+                                                options: (NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow )
+                                                  owner:self userInfo:nil];
+    [self addTrackingArea:trackingArea];
+  }
+  return self;
+}
 - (BOOL)acceptsFirstResponder {
   return YES;
 }
 - (void)mouseDown:(NSEvent *)theEvent {
+  [super mouseDown:theEvent];
   self.native->OnMouseDown();
 }
 - (void)mouseUp:(NSEvent *)theEvent {
+  [super mouseUp:theEvent];
   self.native->OnMouseUp();
   self.native->OnClick();
 }
 - (void)mouseMoved:(NSEvent *)theEvent {
+  [super mouseMoved:theEvent];
   self.native->OnMouseMove();
 }
 - (void)mouseEntered:(NSEvent *)theEvent {
+  [super mouseEntered:theEvent];
   self.native->OnMouseEnter();
 }
 - (void)mouseExited:(NSEvent *)theEvent {
+  [super mouseExited:theEvent];
   self.native->OnMouseExit();
 }
 - (void)keyDown:(NSEvent *)theEvent {
+  [super keyDown:theEvent];
   self.native->OnKeyDown();
 }
 - (void)keyUp:(NSEvent *)theEvent {
+  [super keyUp:theEvent];
   self.native->OnKeyUp();
 }
 @end
 
 @implementation TintSearchField
+- (id)initWithFrame:(NSRect)frame {
+  NSTrackingArea *trackingArea;
+  self = [super initWithFrame:frame];
+  if (self) {
+    trackingArea = [[NSTrackingArea alloc] initWithRect:frame
+                                                options: (NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow )
+                                                  owner:self userInfo:nil];
+    [self addTrackingArea:trackingArea];
+  }
+  return self;
+}
 - (BOOL)acceptsFirstResponder {
   return YES;
 }
 - (void)mouseDown:(NSEvent *)theEvent {
+  [super mouseDown:theEvent];
   self.native->OnMouseDown();
 }
 - (void)mouseUp:(NSEvent *)theEvent {
+  [super mouseUp:theEvent];
   self.native->OnMouseUp();
   self.native->OnClick();
 }
 - (void)mouseMoved:(NSEvent *)theEvent {
+  [super mouseMoved:theEvent];
   self.native->OnMouseMove();
 }
 - (void)mouseEntered:(NSEvent *)theEvent {
+  [super mouseEntered:theEvent];
   self.native->OnMouseEnter();
 }
 - (void)mouseExited:(NSEvent *)theEvent {
+  [super mouseExited:theEvent];
   self.native->OnMouseExit();
 }
 - (void)keyDown:(NSEvent *)theEvent {
+  [super keyDown:theEvent];
   self.native->OnKeyDown();
 }
 - (void)keyUp:(NSEvent *)theEvent {
+  [super keyUp:theEvent];
   self.native->OnKeyUp();
 }
 @end
 
 @implementation TintSlider
+- (id)initWithFrame:(NSRect)frame {
+  NSTrackingArea *trackingArea;
+  self = [super initWithFrame:frame];
+  if (self) {
+    trackingArea = [[NSTrackingArea alloc] initWithRect:frame
+                                                options: (NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow )
+                                                  owner:self userInfo:nil];
+    [self addTrackingArea:trackingArea];
+  }
+  return self;
+}
 - (BOOL)acceptsFirstResponder {
   return YES;
 }
 - (void)mouseDown:(NSEvent *)theEvent {
+  [super mouseDown:theEvent];
   self.native->OnMouseDown();
 }
 - (void)mouseUp:(NSEvent *)theEvent {
+  [super mouseUp:theEvent];
   self.native->OnMouseUp();
   self.native->OnClick();
 }
 - (void)mouseMoved:(NSEvent *)theEvent {
+  [super mouseMoved:theEvent];
   self.native->OnMouseMove();
 }
 - (void)mouseEntered:(NSEvent *)theEvent {
+  [super mouseEntered:theEvent];
   self.native->OnMouseEnter();
 }
 - (void)mouseExited:(NSEvent *)theEvent {
+  [super mouseExited:theEvent];
   self.native->OnMouseExit();
 }
 - (void)keyDown:(NSEvent *)theEvent {
+  [super keyDown:theEvent];
   self.native->OnKeyDown();
 }
 - (void)keyUp:(NSEvent *)theEvent {
+  [super keyUp:theEvent];
   self.native->OnKeyUp();
 }
 @end
@@ -556,53 +636,78 @@
   return YES;
 }
 - (void)mouseDown:(NSEvent *)theEvent {
+  [super mouseDown:theEvent];
   self.native->OnMouseDown();
 }
 - (void)mouseUp:(NSEvent *)theEvent {
+  [super mouseUp:theEvent];
   self.native->OnMouseUp();
   self.native->OnClick();
 }
 - (void)mouseMoved:(NSEvent *)theEvent {
+  [super mouseMoved:theEvent];
   self.native->OnMouseMove();
 }
 - (void)mouseEntered:(NSEvent *)theEvent {
+  [super mouseEntered:theEvent];
   self.native->OnMouseEnter();
 }
 - (void)mouseExited:(NSEvent *)theEvent {
+  [super mouseExited:theEvent];
   self.native->OnMouseExit();
 }
 - (void)keyDown:(NSEvent *)theEvent {
+  [super keyDown:theEvent];
   self.native->OnKeyDown();
 }
 - (void)keyUp:(NSEvent *)theEvent {
+  [super keyUp:theEvent];
   self.native->OnKeyUp();
 }
 @end
 
 @implementation TintComboBox
+- (id)initWithFrame:(NSRect)frame {
+  NSTrackingArea *trackingArea;
+  self = [super initWithFrame:frame];
+  if (self) {
+    trackingArea = [[NSTrackingArea alloc] initWithRect:frame
+                                                options: (NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow )
+                                                  owner:self userInfo:nil];
+    [self addTrackingArea:trackingArea];
+  }
+  return self;
+}
 - (BOOL)acceptsFirstResponder {
   return YES;
 }
 - (void)mouseDown:(NSEvent *)theEvent {
+  [super mouseDown:theEvent];
   self.native->OnMouseDown();
 }
 - (void)mouseUp:(NSEvent *)theEvent {
+  [super mouseUp:theEvent];
   self.native->OnMouseUp();
   self.native->OnClick();
 }
 - (void)mouseMoved:(NSEvent *)theEvent {
+  [super mouseMoved:theEvent];
   self.native->OnMouseMove();
 }
 - (void)mouseEntered:(NSEvent *)theEvent {
+  [super mouseEntered:theEvent];
   self.native->OnMouseEnter();
 }
 - (void)mouseExited:(NSEvent *)theEvent {
+  [super mouseExited:theEvent];
   self.native->OnMouseExit();
 }
 - (void)keyDown:(NSEvent *)theEvent {
+  [super keyDown:theEvent];
   self.native->OnKeyDown();
 }
 - (void)keyUp:(NSEvent *)theEvent {
+  [super keyUp:theEvent];
   self.native->OnKeyUp();
 }
 @end

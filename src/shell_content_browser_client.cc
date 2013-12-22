@@ -20,6 +20,7 @@
 
 #include "content/nw/src/shell_content_browser_client.h"
 
+#include "base/path_service.h"
 #include "base/base_switches.h"
 #include "base/command_line.h"
 #include "base/files/file_path.h"
@@ -273,6 +274,7 @@ void ShellContentBrowserClient::OverrideWebkitPrefs(
   prefs->javascript_can_access_clipboard = true;
   prefs->web_security_enabled = true;
   prefs->allow_file_access_from_file_urls = true;
+  prefs->allow_universal_access_from_file_urls = true;
 
   // Open experimental features.
   prefs->css_sticky_position_enabled = true;
@@ -280,8 +282,8 @@ void ShellContentBrowserClient::OverrideWebkitPrefs(
   prefs->css_variables_enabled = true;
   prefs->experimental_webgl_enabled = true;
 
-  // Disable plugins and cache by default.
-  prefs->plugins_enabled = false;
+  // Enable plugins and cache by default.
+  prefs->plugins_enabled = true;
   prefs->java_enabled = false;
 
   base::DictionaryValue* webkit;
@@ -289,11 +291,11 @@ void ShellContentBrowserClient::OverrideWebkitPrefs(
     webkit->GetBoolean(switches::kmJava, &prefs->java_enabled);
     webkit->GetBoolean(switches::kmPlugin, &prefs->plugins_enabled);
     FilePath plugins_dir = package->path();
-    //PathService::Get(base::DIR_CURRENT, &plugins_dir);
+    PathService::Get(base::DIR_CURRENT, &plugins_dir);
     plugins_dir = plugins_dir.AppendASCII("plugins");
 
-    //PluginService* plugin_service = PluginService::GetInstance();
-    //plugin_service->AddExtraPluginDir(plugins_dir);
+    PluginService* plugin_service = PluginService::GetInstance();
+    plugin_service->AddExtraPluginDir(plugins_dir);
   }
 }
 

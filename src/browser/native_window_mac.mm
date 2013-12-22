@@ -319,15 +319,11 @@ enum {
 @end
 
 @implementation ShellFramelessNSWindow
-
 - (void)drawCustomFrameRect:(NSRect)rect forView:(NSView*)view {
   [super drawCustomFrameRect:rect forView:view];
 
-  if(![self getGlass]) {
-    [[NSBezierPath bezierPathWithRect:rect] addClip];
-    [[NSColor clearColor] set];
-    NSRectFill(rect);
-  }
+  //if(![self getGlass]) {
+  //}
   if(![self getTransparent] && ![self getGlass])
   {
     // Set up our clip.
@@ -338,6 +334,10 @@ enum {
                                      xRadius:cornerRadius
                                      yRadius:cornerRadius] addClip];
     [[NSColor whiteColor] set];
+    NSRectFill(rect);
+  } else {
+    [[NSBezierPath bezierPathWithRect:rect] addClip];
+    [[NSColor clearColor] set];
     NSRectFill(rect);
   }
 }
@@ -385,6 +385,8 @@ NativeWindowCocoa::NativeWindowCocoa(
   manifest->GetBoolean(switches::kmInitialFocus, &initial_focus_);
   manifest->GetBoolean(switches::kmTransparent, &is_transparent_);
 
+  if(is_transparent_) has_frame_ = false;
+
   NSRect main_screen_rect = [[[NSScreen screens] objectAtIndex:0] frame];
   NSRect cocoa_bounds = NSMakeRect(
       (NSWidth(main_screen_rect) - width) / 2,
@@ -409,6 +411,7 @@ NativeWindowCocoa::NativeWindowCocoa(
                       defer:NO];
   }
   window_ = shell_window;
+
   [shell_window setShell:shell];
   [window() setDelegate:[[NativeWindowDelegate alloc] initWithShell:shell]];
   // Disable fullscreen button when 'fullscreen' is specified to false.
@@ -595,6 +598,46 @@ void NativeWindowCocoa::SetTransparent() {
   [[window() standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
   [[window() standardWindowButton:NSWindowCloseButton] setHidden:YES];
   [[window() standardWindowButton:NSWindowFullScreenButton] setHidden:YES];
+
+  // Add a tracker to mouse moevements, if we hit a transparent patch, allow mouse
+  // events to fall through by ignoring them, hopefully theres a better way of implementing this.
+  [window_ setAcceptsMouseMovedEvents:YES];
+  [NSEvent addLocalMonitorForEventsMatchingMask:NSAnyEventMask handler:^(NSEvent *theEvent) {
+    if([NSEvent pressedMouseButtons] == 1 << 0 ||
+       [NSEvent pressedMouseButtons] == 1 << 1) {
+      if([window_ ignoresMouseEvents] == YES) {
+        [window_ setIgnoresMouseEvents:NO];
+//        DLOG(WARNING) << "Listening to mouse events (mouseDown).";
+      }
+      return theEvent;
+    } else {
+      NSPoint point = [NSEvent mouseLocation];
+      CGImageRef image = CGWindowListCreateImage(CGRectMake(point.x,point.y,1,1),
+                                                 kCGWindowListOptionIncludingWindow | kCGWindowListOptionOnScreenAboveWindow,
+                                                 [window_ windowNumber],
+                                                 kCGWindowImageDefault);
+      NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithCGImage:image];
+      CGImageRelease(image);
+      NSColor *color = [bitmap colorAtX:0 y:0];
+      [bitmap release];
+
+//      DLOG(WARNING) << "Got color:("<< [color redComponent] << "," << [color blueComponent] << ","<< [color greenComponent] << "," << [color alphaComponent] << " at point (" << point.x << "," << point.y << ")";
+
+
+      if([color alphaComponent] == 0.0f) {
+        if([window_ ignoresMouseEvents] == NO) {
+          [window_ setIgnoresMouseEvents:YES];
+//          DLOG(WARNING) << "Ignoring mouse events.";
+        }
+      } else {
+        if([window_ ignoresMouseEvents] == YES) {
+          [window_ setIgnoresMouseEvents:NO];
+//          DLOG(WARNING) << "Listening to mouse events.";
+        }
+      }
+      return theEvent;
+    }
+  }];
 }
 
 bool NativeWindowCocoa::IsTransparent() {

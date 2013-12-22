@@ -116,7 +116,7 @@ class NativeWindowCocoa : public NativeWindow {
       const std::vector<extensions::DraggableRegion>& regions);
 
   NSWindow* window_;
-
+  //NSWindow* overlayWindow_;
   // Delegate to the toolbar.
   //base::scoped_nsobject<ShellToolbarDelegate> toolbar_delegate_;
 

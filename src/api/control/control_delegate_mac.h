@@ -37,6 +37,7 @@ namespace nwapi {
 @interface TintButton : NSButton
 @property nwapi::Control *native;
 /** Events & Responder **/
+- (id)initWithFrame:(NSRect)frame;
 - (BOOL)acceptsFirstResponder;
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
@@ -50,6 +51,7 @@ namespace nwapi {
 @interface TintTextField : NSTextField
 @property nwapi::Control *native;
 /** Events & Responder **/
+- (id)initWithFrame:(NSRect)frame;
 - (BOOL)acceptsFirstResponder;
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
@@ -63,6 +65,7 @@ namespace nwapi {
 @interface TintSearchField : NSSearchField
 @property nwapi::Control *native;
 /** Events & Responder **/
+- (id)initWithFrame:(NSRect)frame;
 - (BOOL)acceptsFirstResponder;
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
@@ -76,6 +79,7 @@ namespace nwapi {
 @interface TintSlider : NSSlider
 @property nwapi::Control *native;
 /** Events & Responder **/
+- (id)initWithFrame:(NSRect)frame;
 - (BOOL)acceptsFirstResponder;
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
@@ -102,6 +106,7 @@ namespace nwapi {
 @interface TintComboBox : NSComboBox
 @property nwapi::Control *native;
 /** Events & Responder **/
+- (id)initWithFrame:(NSRect)frame;
 - (BOOL)acceptsFirstResponder;
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
