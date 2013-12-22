@@ -634,13 +634,13 @@ void NativeWindowCocoa::SetTransparent() {
       NSColor *color = [bitmap colorAtX:0 y:0];
       [bitmap release];
 
-      if ([color alphaComponent] == 0.0f)
+      if ([color alphaComponent] == 0.0f) {
         if([window_ ignoresMouseEvents] == NO)
           [window_ setIgnoresMouseEvents:YES];
-      else
+      } else {
         if([window_ ignoresMouseEvents] == YES)
           [window_ setIgnoresMouseEvents:NO];
-
+      }
       return theEvent;
     }
   }];
@@ -733,6 +733,17 @@ gfx::Size NativeWindowCocoa::GetSize() {
 }
 
 void NativeWindowCocoa::SetShowInTaskbar(bool show) {
+  if(show) {
+    std::vector<content::Shell*> windows = content::Shell::windows();
+    for(unsigned i=0; i < windows.size(); i++)
+      [((nw::NativeWindowCocoa *)windows[i]->window())->window_ setCanHide:YES];
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+  } else {
+    std::vector<content::Shell*> windows = content::Shell::windows();
+    for(unsigned i=0; i < windows.size(); i++)
+      [((nw::NativeWindowCocoa *)windows[i]->window())->window_ setCanHide:NO];
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+  }
 }
 
 void NativeWindowCocoa::SetBadgeCount(int count) {
@@ -1115,6 +1126,7 @@ void NativeWindowCocoa::EndOffclientMouseMove() {
 void NativeWindowCocoa::RenderViewCreated(content::RenderViewHost *render_view_host) {
 	
 }
+
 
 NativeWindow* CreateNativeWindowCocoa(const base::WeakPtr<content::Shell>& shell,
                                            base::DictionaryValue* manifest) {
