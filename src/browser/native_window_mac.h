@@ -124,6 +124,7 @@ class NativeWindowCocoa : public NativeWindow {
   bool is_kiosk_;
   bool is_transparent_;
   bool is_glass_;
+  bool is_in_taskbar_;
   NSRect restored_bounds_;
 
   NSInteger attention_request_id_;  // identifier from requestUserAttention

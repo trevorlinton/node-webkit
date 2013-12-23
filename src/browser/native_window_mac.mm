@@ -372,6 +372,7 @@ NativeWindowCocoa::NativeWindowCocoa(
       is_kiosk_(false),
       is_transparent_(false),
       is_glass_(false),
+      is_in_taskbar_(true),
       attention_request_id_(0),
       use_system_drag_(true),
       initial_focus_(false),    // the initial value is different from other
@@ -384,6 +385,8 @@ NativeWindowCocoa::NativeWindowCocoa(
   manifest->GetInteger(switches::kmHeight, &height);
   manifest->GetBoolean(switches::kmInitialFocus, &initial_focus_);
   manifest->GetBoolean(switches::kmTransparent, &is_transparent_);
+  if(manifest->HasKey(switches::kmTaskBar))
+    manifest->GetBoolean(switches::kmTaskBar, &is_transparent_);
 
   if(is_transparent_) has_frame_ = false;
 
@@ -422,6 +425,10 @@ NativeWindowCocoa::NativeWindowCocoa(
     collectionBehavior |= NSWindowCollectionBehaviorFullScreenPrimary;
     [window() setCollectionBehavior:collectionBehavior];
   }
+
+  // Is it in the taskbar
+  if(!is_in_taskbar_)
+    SetShowInTaskbar(false);
 
   if (base::mac::IsOSSnowLeopard()) {
     [window() setCollectionBehavior:
