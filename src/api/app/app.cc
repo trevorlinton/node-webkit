@@ -677,7 +677,8 @@ void App::Quit(RenderProcessHost* render_process_host) {
   // Send the quit message.
   int no_use;
   if (render_process_host) {
-    render_process_host->Send(new ViewMsg_WillQuit(&no_use));
+    render_process_host->Cleanup();
+    //render_process_host->Send(new ViewMsg_WillQuit(&no_use));
   }else{
     std::set<RenderProcessHost*> rphs;
     std::set<RenderProcessHost*>::iterator it;
@@ -686,8 +687,8 @@ void App::Quit(RenderProcessHost* render_process_host) {
     for (it = rphs.begin(); it != rphs.end(); it++) {
       RenderProcessHost* rph = *it;
       DCHECK(rph != NULL);
-
-      rph->Send(new ViewMsg_WillQuit(&no_use));
+      //rph->Send(new ViewMsg_WillQuit(&no_use));
+      rph->Cleanup();
     }
     CloseAllWindows(true);
   }
