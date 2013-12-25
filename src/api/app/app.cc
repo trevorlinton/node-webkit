@@ -675,7 +675,7 @@ void App::CloseAllWindows(bool force) {
 // static
 void App::Quit(RenderProcessHost* render_process_host) {
   // Send the quit message.
-  int no_use;
+  //int no_use;
   if (render_process_host) {
     render_process_host->Cleanup();
     //render_process_host->Send(new ViewMsg_WillQuit(&no_use));
