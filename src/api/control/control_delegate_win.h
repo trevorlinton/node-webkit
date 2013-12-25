@@ -20,7 +20,7 @@
 
 #ifndef CONTENT_NW_SRC_API_CONTROL_CONTROL_DELEGATE_H_
 #define CONTENT_NW_SRC_API_CONTROL_CONTROL_DELEGATE_H_
-
+/*
 #include "ui/base/models/simple_control_model.h"
 
 namespace nwapi {
@@ -55,5 +55,5 @@ class ControlDelegate : public ui::SimpleControlModel::Delegate {
 };
 
 }  // namespace nwapi
-
+*/
 #endif  // CONTENT_NW_SRC_API_CONTROL_CONTROL_DELEGATE_H_

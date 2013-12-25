@@ -18,7 +18,7 @@
 // ETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "content/nw/src/api/control/control_delegate_win.h"
+/*#include "content/nw/src/api/control/control_delegate_win.h"
 
 #include "base/logging.h"
 #include "base/strings/string16.h"
@@ -100,3 +100,4 @@ bool ControlDelegate::HasIcon(int command_id) {
 }
 
 }  // namespace nwapi
+*/
