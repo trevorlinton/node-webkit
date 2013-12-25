@@ -86,7 +86,7 @@ class NativeWindowWin : public NativeWindow,
   virtual void SetGlass(bool glass) OVERRIDE;
   virtual bool IsGlass() OVERRIDE;
   virtual void SetMenu(nwapi::Menu* menu) OVERRIDE;
-  virtual void SetToolbar(nwapi::Toolbar* toolbar) OVERRIDE;
+  virtual void SetToolbar(nwapi::Control* toolbar) OVERRIDE;
 
   virtual void SetToolbarButtonEnabled(TOOLBAR_BUTTON button,
                                        bool enabled) OVERRIDE;
