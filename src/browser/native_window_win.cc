@@ -39,6 +39,7 @@
 #include "third_party/skia/include/core/SkPaint.h"
 #include "ui/base/hit_test.h"
 #include "ui/base/win/hwnd_util.h"
+#include "ui/base/win/shell.h"
 #include "ui/gfx/path.h"
 #include "ui/gfx/image/image_skia_operations.h"
 #include "ui/views/controls/webview/webview.h"
@@ -47,6 +48,7 @@
 #include "ui/views/widget/widget.h"
 #include "ui/views/widget/native_widget_win.h"
 #include "ui/views/window/native_frame_view.h"
+#include "content/browser/gpu/gpu_data_manager_impl.h"
 
 #include <time.h>
 #include <stdlib.h>
@@ -58,6 +60,67 @@
 namespace nw {
 
 namespace {
+
+HHOOK TransparentMousePeekHook = NULL; 
+HWND TransparentNativeHWND = NULL;
+bool TransparentMouseDrag = false;
+bool TransparentMouseWindow = false;
+
+LRESULT CALLBACK TransparentMousePeek(int nCode, WPARAM wParam, LPARAM lParam) {
+  RECT lpRect;
+  POINT p;
+  bool ResetDrag = false;
+
+  if(GetWindowRect(TransparentNativeHWND, &lpRect)
+    && GetForegroundWindow() == TransparentNativeHWND
+    && GetCursorPos(&p)
+    && (p.x <= lpRect.right && p.y <= lpRect.bottom && p.x >= lpRect.left && p.y >= lpRect.top)
+    && ScreenToClient(TransparentNativeHWND, &p))
+  {
+    if(wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN) 
+      TransparentMouseDrag = true;
+    else if (wParam == WM_LBUTTONUP || wParam == WM_RBUTTONUP)
+      ResetDrag = true;
+
+    HDC hScreen = GetDC(TransparentNativeHWND);
+    HDC hdcMem = CreateCompatibleDC(hScreen);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, 1, 1);
+    HGDIOBJ hOld = SelectObject(hdcMem, hBitmap);
+    BitBlt(hdcMem, 0, 0, 1, 1, hScreen, p.x, p.y, SRCCOPY);
+    SelectObject(hdcMem, hOld);
+
+    BITMAPINFOHEADER bmi = {0};
+    bmi.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.biPlanes = 1;
+    bmi.biBitCount = 32;
+    bmi.biWidth = 1;
+    bmi.biHeight = -1;
+    bmi.biCompression = BI_RGB;
+    bmi.biSizeImage = 0;
+    BYTE ScreenData[4];
+
+    GetDIBits(hdcMem, hBitmap, 0, 1, &ScreenData, (BITMAPINFO*)&bmi, DIB_RGB_COLORS);
+    ReleaseDC(TransparentNativeHWND,hScreen);
+    DeleteDC(hdcMem);
+
+    bool over_transparent_pixel = ScreenData[3] == 0;
+
+    if(over_transparent_pixel && !TransparentMouseWindow && !TransparentMouseDrag) 
+    {
+      SetWindowLong(TransparentNativeHWND, GWL_EXSTYLE, GetWindowLong(TransparentNativeHWND, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+      TransparentMouseWindow = true;
+    } 
+    else if (!over_transparent_pixel && TransparentMouseWindow) 
+    {
+      SetWindowLong(TransparentNativeHWND, GWL_EXSTYLE, (GetWindowLong(TransparentNativeHWND, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT) & ~WS_EX_LAYERED);
+      SetWindowLong(TransparentNativeHWND, GWL_EXSTYLE, GetWindowLong(TransparentNativeHWND, GWL_EXSTYLE));
+      TransparentMouseWindow = false;
+    }
+    if(ResetDrag) TransparentMouseDrag = false;
+  } else 
+    TransparentMouseDrag = false;
+  return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
 
 const int kResizeInsideBoundsSize = 5;
 const int kResizeAreaCornerSize = 16;
@@ -249,6 +312,8 @@ NativeWindowWin::NativeWindowWin(const base::WeakPtr<content::Shell>& shell,
       toolbar_(NULL),
       is_fullscreen_(false),
       is_transparent_(false),
+      is_layered_transparent_(false),
+      is_composited_transparent_(false),
       is_glass_(false),
       is_minimized_(false),
       is_maximized_(false),
@@ -315,7 +380,7 @@ void NativeWindowWin::Notify(const std::string& title, const std::string& text, 
 void NativeWindowWin::Move(const gfx::Rect& bounds) {
   window_->SetBounds(bounds);
 
-  if(IsTransparent())
+  if(IsTransparent() && is_composited_transparent_)
     DWMNegativeMarginInset(true);
 }
 
@@ -380,13 +445,11 @@ bool NativeWindowWin::IsFullscreen() {
 
 bool NativeWindowWin::DWMNegativeMarginInset(bool inset) {
   if(inset) {
-    DLOG(INFO) << "Setting DwmExtendFrameIntoClientArea {-1,-1,-1,-1}";
     MARGINS mgMarInset = { -1, -1, -1, -1 };
     if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
       return false;
     }
   } else {
-    DLOG(INFO) << "Setting DwmExtendFrameIntoClientArea {0,0,0,0}";
     MARGINS mgMarInset = { 0, 0, 0, 0 };
     if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
       return false;
@@ -396,35 +459,82 @@ bool NativeWindowWin::DWMNegativeMarginInset(bool inset) {
 }
 
 void NativeWindowWin::SetGlass(bool glass) {
-  is_glass_ = DWMNegativeMarginInset(true);
+  is_glass_ = DWMNegativeMarginInset(false);
 }
 
 bool NativeWindowWin::IsGlass() {
   return is_glass_;
 }
 
-void NativeWindowWin::SetTransparent() {
-  // These override any other window settings, which isn't the greatest idea
-  // however transparent windows (in Windows) are very tricky and are not 
-  // usable with any other styles.
-  if(!is_intaskbar_) {
-    SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_BORDER); 
-    SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TOOLWINDOW);
-  } else {
-    SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_BORDER); 
-    SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, WS_EX_LAYERED);
+bool NativeWindowWin::SetLayeredTransparent() {
+  is_layered_transparent_ = true;
+  is_composited_transparent_ = false;
+  old_transparent_flags_ = GetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE);
+  SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, WS_EX_LAYERED);
+  SetWindowPos(window_->GetNativeWindow(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+  is_transparent_ = true;
+  return true;
+}
+
+bool NativeWindowWin::SetCompositedTransparent() {
+  is_layered_transparent_ = false;
+
+  // Save the old flags, we'll eventually provide the ability to flip transparency
+  // on and off, however this is problematic as chromium isn't clear how to switch
+  // frame modes without destroying the window, recreating it and moving the content
+  // view.
+  old_transparent_flags_ = GetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE);
+
+  // Rendering on hardware accelerated layers requires WS_EX_COMPOSITED mode,
+  // if Aero isn't supported this will fail, hopefully our caller made sure of
+  // that and used SetTransparent. The window will be made "temporarily" layered
+  // during mouse overs to make sure we can ignore mouse clicks over transparent
+  // areas.
+  SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, WS_EX_COMPOSITED);
+
+  // Compositing requires that we use a DWM margins set to -1 to remove the glass window.
+  if(!DWMNegativeMarginInset(true)) {
+    is_transparent_ = false;
+    is_composited_transparent_ = false;
+    DLOG(ERROR) << "Failed to set transparency, negative margins in DWM declined.";
+    return false;
   }
 
-  is_transparent_ = DWMNegativeMarginInset(true);
-  if(!is_transparent_) {
-    DLOG(ERROR) << "Failed to set transparency, negative margins in DWM declined.";
-    return;
+  // Assume success even if click-throughs may still fail.
+  is_transparent_ = true;
+  is_composited_transparent_ = true;
+
+  // Composited windows do not (even when transparent) support click throughs.  Windows
+  // does not track this information since its a D3D accelerated layer, this trap intersects
+  // the mouse events that are about to come to our window, examines the accelerated layers
+  // transparency on the OS process and decides if the mouse event will go through.  Without
+  // child layered window support (only in Windows 8+) this isn't possible without this semi-hack.
+  TransparentMousePeekHook = SetWindowsHookEx(WH_MOUSE_LL, TransparentMousePeek, NULL, 0);
+  TransparentNativeHWND = window_->GetNativeWindow();
+
+  // A failure to hook may not necessarily mean that it didn't work, unfortunately the error result
+  // does not tell us much of anything, however lets track it so if there are problems we can see it
+  // in the error log.
+  if(TransparentMousePeekHook == NULL) {
+    DLOG(ERROR) << "Failed to set transparent mouse hook, peek value was NULL.";
+    return false;
   }
-  // Send a message to swap frames and refresh contexts
-  SetWindowPos(window_->GetNativeWindow(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-  window_->SetOpacity(0);
-  window_->set_frame_type(views::Widget::FRAME_TYPE_FORCE_CUSTOM);
-  window_->FrameTypeChanged();
+  return true;
+}
+
+void NativeWindowWin::SetTransparent() {
+  // Both layered and composited transparency styles require that we present ourselves as
+  // a popup style window, using sysmenu and border helps retain familiar resizing, maximizing
+  // and toolbar functionality (but not necessarily their widgets).
+  SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, WS_POPUPWINDOW);
+
+  // Compositing style transparency is only supported on VISTA and above, in addition compositing
+  // must be enabled within the DWM otherwise its running under the same mode as XP.
+  if(base::win::GetVersion() >= base::win::VERSION_VISTA
+      && ui::win::IsAeroGlassEnabled())
+    SetCompositedTransparent();
+  else
+    SetLayeredTransparent();
 }
 
 bool NativeWindowWin::IsTransparent() {
@@ -543,15 +653,17 @@ void NativeWindowWin::SetPosition(const std::string& position) {
       window_->SetBoundsConstrained(bounds);
     }
   }
-  if(IsTransparent())
+  if(IsTransparent() && is_composited_transparent_)
     DWMNegativeMarginInset(true);
+  else if(IsGlass())
+    DWMNegativeMarginInset(false);
 }
 
 void NativeWindowWin::SetPosition(const gfx::Point& position) {
   gfx::Rect bounds = window_->GetWindowBoundsInScreen();
   window_->SetBounds(gfx::Rect(position, bounds.size()));
 
-  if(IsTransparent())
+  if(IsTransparent() && is_composited_transparent_)
     DWMNegativeMarginInset(true);
 }
 
@@ -573,7 +685,7 @@ void NativeWindowWin::EndOffclientMouseMove() {
   ReleaseCapture();
 }
 
-void NativeWindowWin::SetToolbar(nwapi::Menu* menu) {
+void NativeWindowWin::SetToolbar(nwapi::Control* menu) {
   
 }
 
@@ -877,7 +989,8 @@ void NativeWindowWin::OnViewWasResized() {
 }
 
 void NativeWindowWin::RenderViewCreated(content::RenderViewHost *render_view_host) {
-  if (is_transparent_) {
+  if (is_transparent_ && is_layered_transparent_) {
+    content::GpuDataManagerImpl::GetInstance()->DisableHardwareAcceleration();
     content::RenderWidgetHostViewWin *renderer = (content::RenderWidgetHostViewWin *)render_view_host->GetView();
     renderer->SetLayeredWindow(window_->GetNativeWindow());
   }
