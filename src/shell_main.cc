@@ -34,6 +34,8 @@
 #include "base/path_service.h"
 #include "content/nw/src/nw_version.h"
 #include "content/nw/src/net/util/embed_utils.h"
+#include "base/win/windows_version.h"
+#include "ui/base/win/shell.h"
 #endif
 
 #if defined(OS_MACOSX)
@@ -81,7 +83,8 @@ void Bootstrap() {
 int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, wchar_t*, int) {
   CommandLine::Init(__argc, __argv);
   if(!CommandLine::ForCurrentProcess()->HasSwitch("resources")) Bootstrap();
-  AddDllDirectory(CommandLine::ForCurrentProcess()->GetSwitchValueNative("resources").c_str());
+  
+  SetDllDirectory(CommandLine::ForCurrentProcess()->GetSwitchValueNative("resources").c_str());
   sandbox::SandboxInterfaceInfo sandbox_info = {0};
   content::InitializeSandboxInfo(&sandbox_info);
   content::ShellMainDelegate delegate;
