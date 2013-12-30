@@ -289,16 +289,16 @@ void ShellContentBrowserClient::OverrideWebkitPrefs(
   prefs->java_enabled = false;
 
   base::DictionaryValue* webkit;
-  if (package->root()->GetDictionary(switches::kmWebkit, &webkit)) {
-    webkit->GetBoolean(switches::kmJava, &prefs->java_enabled);
-    webkit->GetBoolean(switches::kmPlugin, &prefs->plugins_enabled);
+  //if (package->root()->GetDictionary(switches::kmWebkit, &webkit)) {
+    //webkit->GetBoolean(switches::kmJava, &prefs->java_enabled);
+    //webkit->GetBoolean(switches::kmPlugin, &prefs->plugins_enabled);
     FilePath plugins_dir = package->path();
     PathService::Get(base::DIR_CURRENT, &plugins_dir);
     plugins_dir = plugins_dir.AppendASCII("plugins");
 
     PluginService* plugin_service = PluginService::GetInstance();
     plugin_service->AddExtraPluginDir(plugins_dir);
-  }
+  //}
 }
 
 bool ShellContentBrowserClient::ShouldTryToUseExistingProcessHost(
