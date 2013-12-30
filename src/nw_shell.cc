@@ -61,6 +61,7 @@
 #include "ui/views/widget/native_widget_win.h"
 #include "ui/views/widget/widget_delegate.h"
 #endif
+#include "tint_ide/tintide_devtools_delegate.h"
 #include "content/nw/src/browser/shell_devtools_delegate.h"
 #include "content/nw/src/browser/shell_javascript_dialog_creator.h"
 #include "content/nw/src/common/shell_switches.h"
@@ -88,6 +89,8 @@ using base::MessageLoop;
 namespace content {
 
 std::vector<Shell*> Shell::windows_;
+std::vector<TintIDEDevToolsDelegate*> Shell::ide_delegates_;
+
 nwapi::Menu * Shell::appmenu_ = NULL;
 
 bool Shell::quit_message_loop_ = true;
@@ -448,6 +451,99 @@ void Shell::ShowDevTools(const char* jail_id, bool headless) {
   browser_context->set_pinning_renderer(true);
   // Save devtools window in current shell.
   devtools_window_ = shell->weak_ptr_factory_.GetWeakPtr();
+}
+
+base::ListValue *Shell::GetRenderers() {
+  base::ListValue *values = new base::ListValue();
+
+  std::vector<Shell*> shells = Shell::windows();
+  for(unsigned i=0; i < shells.size(); i++) {
+    if(shells[i]->nodejs()) {
+      std::string url = shells[i]->window()->web_contents()->GetURL().spec();
+      int rph_id = shells[i]->window()->web_contents()->GetRenderProcessHost()->GetID();
+      int rvh_id = shells[i]->window()->web_contents()->GetRenderViewHost()->GetRoutingID();
+      values->AppendString(url);
+      values->AppendInteger(rph_id);
+      values->AppendInteger(rvh_id);
+    }
+  }
+
+  return values;
+}
+
+int Shell::StartIDEOnRenderer(int rph_id, int rvh_id) {
+  TintIDEDevToolsDelegate* delegate = new TintIDEDevToolsDelegate(ide_delegates().size(),web_contents_->GetBrowserContext(), 0);
+  //Shell *target;
+  RenderViewHost* inspected_rvh = RenderViewHost::FromID(rph_id, rvh_id);
+  if(inspected_rvh==NULL)
+    return -1;
+  ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rph_id, chrome::kFileScheme);
+  ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rph_id, "app");
+  ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rph_id, "embed");
+  ide_delegates().push_back(delegate);
+  return delegate->GetID();
+}
+
+std::string Shell::GetIDEUrl(int ide_id, int rph_id, int rvh_id) {
+  TintIDEDevToolsDelegate *ide = NULL;
+
+  for(unsigned i=0; i < ide_delegates().size(); i++)
+    if((ide_delegates())[i]->GetID() == ide_id)
+      ide=(ide_delegates())[i];
+
+  if(ide==NULL)
+    return "";
+
+  RenderViewHost* inspected_rvh = RenderViewHost::FromID(rph_id, rvh_id);
+  if(inspected_rvh==NULL)
+    return "";
+
+  scoped_refptr<DevToolsAgentHost> agent(DevToolsAgentHost::GetOrCreateFor(inspected_rvh));
+
+  GURL url = ide->devtools_http_handler()->GetFrontendURL(agent.get());
+  //Shell::FromRenderViewHost(inspected_rvh)->SendEvent("devtools-opened", url.spec());
+
+  return url.spec();
+}
+
+void Shell::OpenIDEBrowser(int ide_id, std::string url) {
+  TintIDEDevToolsDelegate *delegate = NULL;
+
+  for(unsigned i=0; i < ide_delegates().size(); i++)
+    if((ide_delegates())[i]->GetID() == ide_id)
+      delegate=(ide_delegates())[i];
+
+  WebContents::CreateParams create_params(web_contents()->GetBrowserContext(), NULL);
+  WebContents* web_contents = WebContents::Create(create_params);
+
+  // Use our minimum set manifest
+  base::DictionaryValue manifest;
+  manifest.SetBoolean(switches::kmToolbar, false);
+  manifest.SetBoolean(switches::kmFullscreen, false);
+  manifest.SetInteger(switches::kmWidth, 700);
+  manifest.SetInteger(switches::kmHeight, 500);
+
+  BrowserContext* browser_context = delegate->browser_context();
+
+  //browser_context->set_pinning_renderer(false);
+
+  Shell* shell = new Shell(web_contents, &manifest);
+
+  int rh_id = shell->web_contents_->GetRenderProcessHost()->GetID();
+  ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rh_id, chrome::kFileScheme);
+  ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rh_id, "app");
+  ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rh_id, "embed");
+
+  shell->is_devtools_ = true;
+  shell->devtools_owner_ = weak_ptr_factory_.GetWeakPtr();
+  shell->force_close_ = true;
+  shell->LoadURL(GURL(url));
+
+  // LoadURL() could allocate new SiteInstance so we have to pin the
+  // renderer after it
+  //browser_context->set_pinning_renderer(true);
+  // Save devtools window in current shell.
+  //devtools_window_ = shell->weak_ptr_factory_.GetWeakPtr();
 }
 
 void Shell::UpdateDraggableRegions(

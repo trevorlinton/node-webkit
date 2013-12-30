@@ -34,12 +34,12 @@ function Tray(option) {
 
   if (option.hasOwnProperty('icon')) {
     option.shadowIcon = String(option.icon);
-    option.icon = nw.getAbsolutePath(option.icon);
+    option.icon = String(option.icon);//nw.getAbsolutePath(option.icon);
   }
   
   if (option.hasOwnProperty('alticon')) {
     option.shadowAlticon = String(option.alticon);
-    option.alticon = nw.getAbsolutePath(option.alticon);
+    option.alticon = String(option.alticon);//nw.getAbsolutePath(option.alticon);
   }
 
   if (option.hasOwnProperty('tooltip'))

@@ -333,6 +333,22 @@ void Window::CallSync(const std::string& method,
     if (!headless)
       object_id = shell_->WrapDevToolsWindow();
     result->AppendInteger(object_id);
+  } else if (method == "GetRenderers") {
+    result->Append(shell_->GetRenderers());
+  } else if (method == "StartIDEOnRenderer") {
+    int rph_id;
+    int rvh_id;
+    arguments.GetInteger(0,&rph_id);
+    arguments.GetInteger(1,&rvh_id);
+    result->AppendInteger(shell_->StartIDEOnRenderer(rph_id, rvh_id));
+  } else if (method == "GetIDEUrl") {
+    int ide_id;
+    int rph_id;
+    int rvh_id;
+    arguments.GetInteger(0,&ide_id);
+    arguments.GetInteger(1,&rph_id);
+    arguments.GetInteger(2,&rvh_id);
+    result->AppendString(shell_->GetIDEUrl(ide_id,rph_id, rvh_id));
   } else {
     NOTREACHED() << "Invalid call to Window method:" << method
                  << " arguments:" << arguments;

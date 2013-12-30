@@ -25,6 +25,8 @@
 #include "content/nw/src/api/dispatcher_host.h"
 #include "content/nw/src/api/menu/menu.h"
 #include "content/nw/src/net/util/embed_utils.h"
+#include "content/nw/src/nw_package.h"
+#include "content/nw/src/nw_shell.h"
 
 @interface MacTrayObserver : NSObject {
  @private
@@ -75,8 +77,11 @@ void Tray::SetIcon(const std::string& icon) {
     if(embed_util::Utility::GetFileInfo(icon,&meta) && embed_util::Utility::GetFileData(&meta)) {
       image = [[NSImage alloc] initWithData:[NSData dataWithBytes:meta.data length:meta.data_size]];
     } else {
+      nw::Package *pkg = content::Shell::GetPackage();
+      base::FilePath input = base::FilePath::FromUTF8Unsafe(icon);
+      std::string path = pkg->path().Append(input).AsUTF8Unsafe();;
       image = [[NSImage alloc]
-                        initWithContentsOfFile:[NSString stringWithUTF8String:icon.c_str()]];
+                        initWithContentsOfFile:[NSString stringWithUTF8String:path.c_str()]];
     }
     [image setScalesWhenResized:YES];
     [image setSize:NSMakeSize(22, 22)];

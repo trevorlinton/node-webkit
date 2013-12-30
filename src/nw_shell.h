@@ -58,6 +58,7 @@ class ShellDevToolsFrontend;
 class ShellJavaScriptDialogCreator;
 class SiteInstance;
 class WebContents;
+class TintIDEDevToolsDelegate;
 
 using base::FilePath;
 
@@ -101,6 +102,10 @@ class Shell : public WebContentsDelegate,
   void Stop();
   void ReloadOrStop();
   void ShowDevTools(const char* jail_id = NULL, bool headless = false);
+  base::ListValue *GetRenderers();
+  int StartIDEOnRenderer(int rph_id, int rvh_id);
+  std::string GetIDEUrl(int ide_id, int rph_id, int rvh_id);
+  void OpenIDEBrowser(int ide_id, std::string URL);
   void CloseDevTools();
   bool devToolsOpen() { return devtools_window_.get() != NULL; }
   // Send an event to renderer.
@@ -119,6 +124,7 @@ class Shell : public WebContentsDelegate,
   int WrapDevToolsWindow();
   // Returns the currently open windows.
   static std::vector<Shell*>& windows() { return windows_; }
+  static std::vector<TintIDEDevToolsDelegate*>& ide_delegates() { return ide_delegates_; }
 
   static nwapi::Menu* GetAppMenu();
   static void SetAppMenu(nwapi::Menu *);
@@ -225,6 +231,8 @@ class Shell : public WebContentsDelegate,
   // A container of all the open windows. We use a vector so we can keep track
   // of ordering.
   static std::vector<Shell*> windows_;
+  static std::vector<TintIDEDevToolsDelegate*> ide_delegates_;
+
   static nwapi::Menu* appmenu_;
 
   // True if the destructur of Shell should post a quit closure on the current

@@ -386,7 +386,7 @@ NativeWindowCocoa::NativeWindowCocoa(
   manifest->GetBoolean(switches::kmInitialFocus, &initial_focus_);
   manifest->GetBoolean(switches::kmTransparent, &is_transparent_);
   if(manifest->HasKey(switches::kmTaskBar))
-    manifest->GetBoolean(switches::kmTaskBar, &is_transparent_);
+    manifest->GetBoolean(switches::kmTaskBar, &is_in_taskbar_);
 
   if(is_transparent_) has_frame_ = false;
 

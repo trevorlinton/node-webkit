@@ -62,6 +62,8 @@
         '-Wno-error=c++0x-compat',
       ],
       'sources': [
+	'<(DEPTH)/tint_ide/tintide_devtools_delegate.cc',
+	'<(DEPTH)/tint_ide/tintide_devtools_delegate.h',
         '<(DEPTH)/chrome/browser/chrome_process_finder_win.cc',
         '<(DEPTH)/chrome/browser/chrome_process_finder_win.h',
         '<(DEPTH)/chrome/common/child_process_logging.h',

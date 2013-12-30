@@ -407,6 +407,18 @@ Window.prototype.showDevTools = function(frm, headless) {
     }
 }
 
+Window.prototype.getRenderers = function() {
+  return CallObjectMethodSync(this, 'GetRenderers', []);
+}
+
+Window.prototype.startIDEOnRenderer = function(i,j) {
+  return CallObjectMethodSync(this, 'StartIDEOnRenderer', [i,j]);
+}
+
+Window.prototype.getIDEUrl = function(u,i,j) {
+  return CallObjectMethodSync(this, 'GetIDEUrl', [u,i,j]);
+}
+
 Window.prototype.__setDevToolsJail = function(id) {
     var frm = null;
     if (id)
