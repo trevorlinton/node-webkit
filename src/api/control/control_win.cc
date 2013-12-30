@@ -22,7 +22,6 @@
 
 #include "base/values.h"
 #include "content/nw/src/api/dispatcher_host.h"
-#include "content/nw/src/api/controlitem/controlitem.h"
 #include "content/nw/src/browser/native_window_win.h"
 #include "content/nw/src/nw_shell.h"
 #include "content/public/browser/web_contents.h"
@@ -32,7 +31,6 @@
 #include "ui/gfx/icon_util.h"
 #include "ui/views/widget/widget.h"
 
-namespace {
 
 namespace nwapi {
 
@@ -42,13 +40,27 @@ void Control::Create(const base::DictionaryValue& option) {
 void Control::Destroy() {
 }
 
-void Control::Append(ControlItem* control_item) {
+void Control::Append(Control* control_item) {
 }
 
-void Control::Insert(ControlItem* control_item, int pos) {
+void Control::Insert(Control* control_item, int pos) {
 }
 
-void Control::Remove(ControlItem* control_item, int pos) {
+void Control::Remove(Control* control_item, int pos) {
 }
 
-}  // namespace nwapi
+void Control::SetOptions(const base::DictionaryValue& options) {
+}
+
+base::DictionaryValue *Control::GetOptions() {
+  return NULL;
+}
+
+void Control::SetValue(const base::ListValue& value) {
+}
+
+base::ListValue *Control::GetValue() {
+  return NULL;
+} 
+}
+// namespace nwapi

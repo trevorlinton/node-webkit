@@ -164,8 +164,6 @@ DispatcherBindings::RequireNwGui(const v8::FunctionCallbackInfo<v8::Value>& args
   RequireFromResource(args.This(),
       NwGui, v8::String::New("menu.js"), IDR_NW_API_MENU_JS);
   RequireFromResource(args.This(),
-      NwGui, v8::String::New("controlitem.js"), IDR_NW_API_CONTROLITEM_JS);
-  RequireFromResource(args.This(),
       NwGui, v8::String::New("control.js"), IDR_NW_API_CONTROL_JS);
   RequireFromResource(args.This(),
       NwGui, v8::String::New("tray.js"), IDR_NW_API_TRAY_JS);

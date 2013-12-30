@@ -72,6 +72,15 @@ NativeWindow::NativeWindow(const base::WeakPtr<content::Shell>& shell,
       has_frame_(true),
       capture_page_helper_(NULL) {
 
+  // Frame settings may not be changed and must be known on initialization
+  // Go ahead and ensure if transparency or frameless is requested that we
+  // mark has_frame_ as false and later events will build the rest of the
+  // frame.
+  bool transparent = false;
+  bool frame = true;
+  if((manifest->GetBoolean(switches::kmTransparent, &transparent) && transparent)
+      || (manifest->GetBoolean(switches::kmFrame, &frame) && !frame))
+    has_frame_=false;
   LoadAppIconFromPackage(manifest);
 }
 
@@ -136,11 +145,11 @@ void NativeWindow::InitFromManifest(base::DictionaryValue* manifest) {
     /* Transparent windows cannot have toolbars or other window controls */
     manifest->SetBoolean(switches::kmToolbar, false);
   }
-  bool toolbar = true;
+  /*bool toolbar = true;
   manifest->GetBoolean(switches::kmToolbar, &toolbar);
   if (toolbar) {
     AddToolbar();
-  }
+  }*/
   std::string title("Runtime");
   manifest->GetString(switches::kmTitle, &title);
   SetTitle(title);

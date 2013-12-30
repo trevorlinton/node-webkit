@@ -64,7 +64,9 @@
 #include "webkit/common/user_agent/user_agent_util.h"
 #include "content/common/plugin_list.h"
 #include "content/public/browser/plugin_service.h"
-
+#if defined(OS_WIN)
+#include "content/browser/renderer_host/render_widget_host_view_win.h"
+#endif
 #if defined(OS_LINUX)
 #include "base/linux_util.h"
 #include "content/nw/src/crash_handler_host_linux.h"
@@ -358,6 +360,8 @@ void ShellContentBrowserClient::RenderProcessHostCreated(
   content::ChildProcessSecurityPolicy::GetInstance()->GrantScheme(
       host->GetID(), chrome::kFileScheme);
   content::ChildProcessSecurityPolicy::GetInstance()->GrantScheme(
+      host->GetID(), "embed");
+  content::ChildProcessSecurityPolicy::GetInstance()->GrantScheme(
       host->GetID(), "app");
 
 #if defined(ENABLE_PRINTING)
@@ -374,6 +378,7 @@ bool ShellContentBrowserClient::IsHandledURL(const GURL& url) {
   static const char* const kProtocolList[] = {
     chrome::kFileSystemScheme,
     chrome::kFileScheme,
+    "embed",
     "app",
   };
   for (size_t i = 0; i < arraysize(kProtocolList); ++i) {
@@ -409,6 +414,7 @@ void ShellContentBrowserClient::GetAdditionalAllowedSchemesForFileSystem(
   ContentBrowserClient::GetAdditionalAllowedSchemesForFileSystem(
       additional_allowed_schemes);
   additional_allowed_schemes->push_back("app");
+  additional_allowed_schemes->push_back("embed");
 }
 
 #if defined(OS_POSIX) && !defined(OS_MACOSX)

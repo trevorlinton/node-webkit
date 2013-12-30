@@ -86,7 +86,7 @@ class NativeWindowWin : public NativeWindow,
   virtual void SetGlass(bool glass) OVERRIDE;
   virtual bool IsGlass() OVERRIDE;
   virtual void SetMenu(nwapi::Menu* menu) OVERRIDE;
-  virtual void SetToolbar(nwapi::Toolbar* toolbar) OVERRIDE;
+  virtual void SetToolbar(nwapi::Control* toolbar) OVERRIDE;
 
   virtual void SetToolbarButtonEnabled(TOOLBAR_BUTTON button,
                                        bool enabled) OVERRIDE;
@@ -123,6 +123,8 @@ class NativeWindowWin : public NativeWindow,
 
  protected:
   // NativeWindow implementation.
+  bool SetLayeredTransparent();
+  bool SetCompositedTransparent();
   virtual void AddToolbar() OVERRIDE;
   virtual void UpdateDraggableRegions(
       const std::vector<extensions::DraggableRegion>& regions) OVERRIDE;
@@ -172,6 +174,9 @@ class NativeWindowWin : public NativeWindow,
   gfx::Size maximum_size_;
 
   bool initial_focus_;
+  bool is_layered_transparent_;
+  bool is_composited_transparent_;
+  int old_transparent_flags_;
 
   int last_width_;
   int last_height_;
