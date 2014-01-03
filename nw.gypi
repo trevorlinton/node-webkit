@@ -62,8 +62,20 @@
         '-Wno-error=c++0x-compat',
       ],
       'sources': [
-	'<(DEPTH)/tint_ide/tintide_devtools_delegate.cc',
-	'<(DEPTH)/tint_ide/tintide_devtools_delegate.h',
+      
+        # support for about flags.
+        '<(DEPTH)/components/nacl/common/nacl_switches.h',
+        '<(DEPTH)/components/nacl/common/nacl_switches.cc',
+        '<(DEPTH)/ui/message_center/message_center_switches.cc',
+        '<(DEPTH)/ui/message_center/message_center_switches.h',
+        '<(DEPTH)/extensions/common/switches.h',
+        '<(DEPTH)/extensions/common/switches.cc',
+        '<(DEPTH)/chrome/common/chrome_switches.cc',
+        '<(DEPTH)/chrome/common/chrome_switches.h',
+        '<(DEPTH)/chrome/browser/about_flags.cc',
+        '<(DEPTH)/chrome/browser/about_flags.h',
+        '<(DEPTH)/tint_ide/tintide_devtools_delegate.cc',
+        '<(DEPTH)/tint_ide/tintide_devtools_delegate.h',
         '<(DEPTH)/chrome/browser/chrome_process_finder_win.cc',
         '<(DEPTH)/chrome/browser/chrome_process_finder_win.h',
         '<(DEPTH)/chrome/common/child_process_logging.h',

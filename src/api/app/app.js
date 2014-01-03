@@ -59,6 +59,15 @@ App.prototype.unzip = function(zipfile, dest) {
   nw.callStaticMethodSync('App','Unzip',[zipfile, dest]);
 }
 
+
+App.prototype.getChromeSwitches = function() {
+  return JSON.parse(nw.callStaticMethodSync('App','GetChromeSwitches', []));
+}
+
+App.prototype.getChromeFlags = function() {
+  return nw.callStaticMethodSync('App','GetChromeFlags', []);
+}
+
 App.prototype.gzip = function(src, dst) {
 	return nw.callStaticMethodSync('App','Gzip',[src, dst]);
 }

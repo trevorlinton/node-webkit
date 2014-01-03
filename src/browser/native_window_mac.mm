@@ -427,8 +427,7 @@ NativeWindowCocoa::NativeWindowCocoa(
   }
 
   // Is it in the taskbar
-  if(!is_in_taskbar_)
-    SetShowInTaskbar(false);
+  SetShowInTaskbar(is_in_taskbar_);
 
   if (base::mac::IsOSSnowLeopard()) {
     [window() setCollectionBehavior:
@@ -742,13 +741,19 @@ gfx::Size NativeWindowCocoa::GetSize() {
 void NativeWindowCocoa::SetShowInTaskbar(bool show) {
   if(show) {
     std::vector<content::Shell*> windows = content::Shell::windows();
-    for(unsigned i=0; i < windows.size(); i++)
-      [((nw::NativeWindowCocoa *)windows[i]->window())->window_ setCanHide:YES];
+    for(unsigned i=0; i < windows.size(); i++) {
+      if(windows[i] != NULL && windows[i]->window() != NULL)
+        [((nw::NativeWindowCocoa *)windows[i]->window())->window_ setCanHide:YES];
+    }
+    [window_ setCanHide:YES];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
   } else {
     std::vector<content::Shell*> windows = content::Shell::windows();
-    for(unsigned i=0; i < windows.size(); i++)
-      [((nw::NativeWindowCocoa *)windows[i]->window())->window_ setCanHide:NO];
+    for(unsigned i=0; i < windows.size(); i++) {
+      if(windows[i] != NULL && windows[i]->window() != NULL)
+        [((nw::NativeWindowCocoa *)windows[i]->window())->window_ setCanHide:NO];
+    }
+    [window_ setCanHide:NO];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
   }
 }
