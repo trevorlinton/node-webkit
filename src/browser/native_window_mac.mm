@@ -427,7 +427,7 @@ NativeWindowCocoa::NativeWindowCocoa(
   }
 
   // Is it in the taskbar
-  SetShowInTaskbar(is_in_taskbar_);
+  // if(!is_in_taskbar_) SetShowInTaskbar(is_in_taskbar_);
 
   if (base::mac::IsOSSnowLeopard()) {
     [window() setCollectionBehavior:

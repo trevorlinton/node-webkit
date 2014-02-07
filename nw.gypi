@@ -62,7 +62,11 @@
         '-Wno-error=c++0x-compat',
       ],
       'sources': [
-      
+        '<(DEPTH)/tint_ide/tintide_devtools_window.cc',
+        '<(DEPTH)/tint_ide/tintide_devtools_window.h',
+        '<(DEPTH)/tint_ide/tintide_devtools_delegate.cc',
+        '<(DEPTH)/tint_ide/
+        tintide_devtools_delegate.h',
         # support for about flags.
         '<(DEPTH)/components/nacl/common/nacl_switches.h',
         '<(DEPTH)/components/nacl/common/nacl_switches.cc',
@@ -74,10 +78,6 @@
         '<(DEPTH)/chrome/common/chrome_switches.h',
         '<(DEPTH)/chrome/browser/about_flags.cc',
         '<(DEPTH)/chrome/browser/about_flags.h',
-        '<(DEPTH)/tint_ide/tintide_devtools_delegate.cc',
-        '<(DEPTH)/tint_ide/tintide_devtools_delegate.h',
-        '<(DEPTH)/chrome/browser/chrome_process_finder_win.cc',
-        '<(DEPTH)/chrome/browser/chrome_process_finder_win.h',
         '<(DEPTH)/chrome/common/child_process_logging.h',
         '<(DEPTH)/chrome/common/child_process_logging_mac.mm',
         '<(DEPTH)/chrome/common/child_process_logging_posix.cc',
@@ -85,6 +85,10 @@
         '<(DEPTH)/chrome/common/crash_keys.cc',
         '<(DEPTH)/chrome/common/dump_without_crashing.cc',
         '<(DEPTH)/chrome/common/env_vars.cc',
+        '<(DEPTH)/chrome/browser/chrome_process_finder_win.cc',
+        '<(DEPTH)/chrome/browser/chrome_process_finder_win.h',
+        #'<(DEPTH)/chrome/browser/devtools/devtools_window.h',
+        #'<(DEPTH)/chrome/browser/devtools/devtools_window.cc',
         '<(DEPTH)/chrome/browser/crash_upload_list.cc',
         '<(DEPTH)/chrome/browser/upload_list.cc',
         '<(DEPTH)/chrome/browser/platform_util_common_linux.cc',

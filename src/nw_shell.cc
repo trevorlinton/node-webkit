@@ -62,6 +62,7 @@
 #include "ui/views/widget/widget_delegate.h"
 #endif
 #include "tint_ide/tintide_devtools_delegate.h"
+#include "tint_ide/tintide_devtools_window.h"
 #include "content/nw/src/browser/shell_devtools_delegate.h"
 #include "content/nw/src/browser/shell_javascript_dialog_creator.h"
 #include "content/nw/src/common/shell_switches.h"
@@ -83,6 +84,8 @@ using nw::NativeWindowWin;
 #endif
 
 #include "content/nw/src/browser/printing/print_view_manager.h"
+
+// #include "chrome/browser/devtools/devtools_window.h"
 
 using base::MessageLoop;
 
@@ -481,7 +484,10 @@ int Shell::StartIDEOnRenderer(int rph_id, int rvh_id) {
   ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rph_id, "app");
   ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rph_id, "embed");
   ide_delegates().push_back(delegate);
+
   return delegate->GetID();
+  //TintIDEWindow::OpenTintIDEWindow(inspected_rvh);
+  return 0;
 }
 
 std::string Shell::GetIDEUrl(int ide_id, int rph_id, int rvh_id) {

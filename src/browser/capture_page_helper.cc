@@ -126,7 +126,7 @@ void CapturePageHelper::SendResultFromBitmap(const SkBitmap& screen_capture) {
     case FORMAT_PNG:
       encoded = gfx::PNGCodec::EncodeBGRASkBitmap(
           screen_capture,
-          true,  // Discard transparency.
+          false,  // Discard transparency.
           &data);
       mime_type = keys::kMimeTypePng;
       break;
