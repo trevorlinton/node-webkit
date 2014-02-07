@@ -61,8 +61,10 @@
 #include "ui/views/widget/native_widget_win.h"
 #include "ui/views/widget/widget_delegate.h"
 #endif
+#ifdef TINT_IDE
 #include "tint_ide/tintide_devtools_delegate.h"
 #include "tint_ide/tintide_devtools_window.h"
+#endif
 #include "content/nw/src/browser/shell_devtools_delegate.h"
 #include "content/nw/src/browser/shell_javascript_dialog_creator.h"
 #include "content/nw/src/common/shell_switches.h"
@@ -92,8 +94,9 @@ using base::MessageLoop;
 namespace content {
 
 std::vector<Shell*> Shell::windows_;
+#ifdef TINT_IDE
 std::vector<TintIDEDevToolsDelegate*> Shell::ide_delegates_;
-
+#endif
 nwapi::Menu * Shell::appmenu_ = NULL;
 
 bool Shell::quit_message_loop_ = true;
@@ -475,6 +478,7 @@ base::ListValue *Shell::GetRenderers() {
 }
 
 int Shell::StartIDEOnRenderer(int rph_id, int rvh_id) {
+#ifdef TINT_IDE
   TintIDEDevToolsDelegate* delegate = new TintIDEDevToolsDelegate(ide_delegates().size(),web_contents_->GetBrowserContext(), 0);
   //Shell *target;
   RenderViewHost* inspected_rvh = RenderViewHost::FromID(rph_id, rvh_id);
@@ -487,10 +491,13 @@ int Shell::StartIDEOnRenderer(int rph_id, int rvh_id) {
 
   return delegate->GetID();
   //TintIDEWindow::OpenTintIDEWindow(inspected_rvh);
+#else
   return 0;
+#endif
 }
 
 std::string Shell::GetIDEUrl(int ide_id, int rph_id, int rvh_id) {
+#ifdef TINT_IDE
   TintIDEDevToolsDelegate *ide = NULL;
 
   for(unsigned i=0; i < ide_delegates().size(); i++)
@@ -510,9 +517,13 @@ std::string Shell::GetIDEUrl(int ide_id, int rph_id, int rvh_id) {
   //Shell::FromRenderViewHost(inspected_rvh)->SendEvent("devtools-opened", url.spec());
 
   return url.spec();
+#else
+  return "";
+#endif
 }
 
 void Shell::OpenIDEBrowser(int ide_id, std::string url) {
+#ifdef TINT_IDE
   TintIDEDevToolsDelegate *delegate = NULL;
 
   for(unsigned i=0; i < ide_delegates().size(); i++)
@@ -550,6 +561,7 @@ void Shell::OpenIDEBrowser(int ide_id, std::string url) {
   //browser_context->set_pinning_renderer(true);
   // Save devtools window in current shell.
   //devtools_window_ = shell->weak_ptr_factory_.GetWeakPtr();
+#endif
 }
 
 void Shell::UpdateDraggableRegions(

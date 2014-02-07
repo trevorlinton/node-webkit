@@ -28,7 +28,9 @@
 #include "base/logging.h"
 #include "base/message_loop/message_loop.h"
 #include "base/values.h"
+#ifdef SWITCHES_RELEASE
 #include "chrome/browser/about_flags.h"
+#endif
 #include "content/nw/src/api/api_messages.h"
 #include "content/nw/src/breakpad_linux.h"
 #include "content/nw/src/browser/native_window.h"
@@ -42,7 +44,9 @@
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/render_process_host.h"
 #include "content/nw/src/net/util/embed_utils.h"
+#ifdef SWITCHES_RELEASE
 #include "content/nw/src/api/app/switches_json.h"
+#endif
 #if defined(OS_WIN)
 #include <fcntl.h>
 #include <sys/types.h>
@@ -642,14 +646,18 @@ void App::Call(Shell* shell,
     arguments.GetString(0, &path);
     result->AppendBoolean(SetCrashDumpPath(path.c_str()));
     return;
+#ifdef SWITCHES_RELEASE
   } else if (method == "GetChromeSwitches") {
     result->AppendString(chrome_switches);
     return;
+#endif
   } else if (method=="GetChromeFlags") {
+#ifdef SWITCHES_RELEASE
     size_t num_experiments;
     const about_flags::Experiment* experiments = about_flags::testing::GetExperiments(&num_experiments);
     for(unsigned i = 0; i < num_experiments; i++)
       result->AppendString(experiments[i].internal_name);
+#endif
     return;
   }
 
