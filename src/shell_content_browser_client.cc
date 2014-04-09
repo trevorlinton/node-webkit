@@ -288,7 +288,7 @@ void ShellContentBrowserClient::OverrideWebkitPrefs(
   prefs->plugins_enabled = true;
   prefs->java_enabled = false;
 
-  base::DictionaryValue* webkit;
+  //base::DictionaryValue* webkit;
   //if (package->root()->GetDictionary(switches::kmWebkit, &webkit)) {
     //webkit->GetBoolean(switches::kmJava, &prefs->java_enabled);
     //webkit->GetBoolean(switches::kmPlugin, &prefs->plugins_enabled);
