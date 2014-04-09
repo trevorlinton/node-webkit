@@ -62,11 +62,11 @@
         '-Wno-error=c++0x-compat',
       ],
       'sources': [
-        '<(DEPTH)/tint_ide/tintide_devtools_window.cc',
-        '<(DEPTH)/tint_ide/tintide_devtools_window.h',
-        '<(DEPTH)/tint_ide/tintide_devtools_delegate.cc',
-        '<(DEPTH)/tint_ide/
-        tintide_devtools_delegate.h',
+        #'<(DEPTH)/tint_ide/tintide_devtools_window.cc',
+        #'<(DEPTH)/tint_ide/tintide_devtools_window.h',
+        #'<(DEPTH)/tint_ide/tintide_devtools_delegate.cc',
+        #'<(DEPTH)/tint_ide/
+        #tintide_devtools_delegate.h',
         # support for about flags.
         '<(DEPTH)/components/nacl/common/nacl_switches.h',
         '<(DEPTH)/components/nacl/common/nacl_switches.cc',
