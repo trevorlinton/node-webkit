@@ -22,9 +22,9 @@
 #define NW_VERSION_H
 
 #define NW_MAJOR_VERSION 0
-#define NW_MINOR_VERSION 8
-#define NW_PATCH_VERSION 3
-#define NW_VERSION_IS_RELEASE 0
+#define NW_MINOR_VERSION 9
+#define NW_PATCH_VERSION 2
+#define NW_VERSION_IS_RELEASE 1
 
 #ifndef NW_STRINGIFY
 #define NW_STRINGIFY(n) NW_STRINGIFY_HELPER(n)
@@ -38,12 +38,12 @@
 #else
 # define NW_VERSION_STRING  NW_STRINGIFY(NW_MAJOR_VERSION) "." \
                               NW_STRINGIFY(NW_MINOR_VERSION) "." \
-                              NW_STRINGIFY(NW_PATCH_VERSION) "-rc1"
+                              NW_STRINGIFY(NW_PATCH_VERSION) "-pre"
 #endif
 
 #define NW_VERSION "v" NW_VERSION_STRING
 
-#define CHROME_VERSION "30.0.1599.66"
+#define CHROME_VERSION "32.0.1700.107"
 
 #define NW_VERSION_AT_LEAST(major, minor, patch) \
   (( (major) < NW_MAJOR_VERSION) \

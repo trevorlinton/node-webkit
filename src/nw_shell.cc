@@ -73,6 +73,8 @@
 #include "content/nw/src/shell_browser_context.h"
 #include "content/nw/src/shell_browser_main_parts.h"
 #include "content/nw/src/shell_content_browser_client.h"
+#include "content/nw/src/shell_devtools_frontend.h"
+
 #include "grit/nw_resources.h"
 #include "net/base/escape.h"
 #include "ui/base/resource/resource_bundle.h"
@@ -110,7 +112,18 @@ Shell* Shell::Create(BrowserContext* browser_context,
                      int routing_id,
                      WebContents* base_web_contents) {
   WebContents::CreateParams create_params(browser_context, site_instance);
+
+  std::string filename;
+  base::DictionaryValue* manifest = GetPackage()->root();
+  if (manifest->GetString(switches::kmInjectJSDocStart, &filename))
+    create_params.nw_inject_js_doc_start = filename;
+  if (manifest->GetString(switches::kmInjectJSDocEnd, &filename))
+    create_params.nw_inject_js_doc_end = filename;
+  if (manifest->GetString(switches::kmInjectCSS, &filename))
+    create_params.nw_inject_css_fn = filename;
+
   create_params.routing_id = routing_id;
+
   WebContents* web_contents = WebContents::Create(create_params);
 
   Shell* shell = new Shell(web_contents, GetPackage()->window());
@@ -147,6 +160,9 @@ Shell* Shell::Create(WebContents* source_contents,
     params.transition_type = PageTransitionFromInt(PAGE_TRANSITION_TYPED);
     params.override_user_agent = NavigationController::UA_OVERRIDE_TRUE;
     params.frame_name = std::string();
+    int nw_win_id = 0;
+    manifest->GetInteger("nw_win_id", &nw_win_id);
+    params.nw_win_id = nw_win_id;
     new_contents->GetController().LoadURLWithParams(params);
   }
   // Use the user agent value from the source WebContents.
@@ -177,7 +193,7 @@ Shell* Shell::FromRenderViewHost(RenderViewHost* rvh) {
 }
 
 Shell::Shell(WebContents* web_contents, base::DictionaryValue* manifest)
-    :
+  : content::WebContentsObserver(web_contents),
   devtools_window_id_(0),
   is_devtools_(false),
   force_close_(false),
@@ -220,6 +236,13 @@ Shell::~Shell() {
     if (devtools_owner_->devtools_window_id_) {
       dhost->OnDeallocateObject(devtools_owner_->devtools_window_id_);
       devtools_owner_->devtools_window_id_ = 0;
+    }else if (id_) {
+      //FIXME: the ownership/ flow of window and shell destruction
+      //need to be cleared
+
+      // In linux, Shell destruction will be called immediately in
+      // CloseDevTools but in OSX it won't
+      dhost->OnDeallocateObject(id_);
     }
   }
 
@@ -273,11 +296,11 @@ void Shell::SendEvent(const std::string& event, const base::ListValue& args) {
       web_contents->GetRoutingID(), id(), event, args));
 }
 
-bool Shell::ShouldCloseWindow() {
+bool Shell::ShouldCloseWindow(bool quit) {
   if (id() < 0 || force_close_)
     return true;
 
-  SendEvent("close");
+  SendEvent("close", quit ? "quit" : "");
   return false;
 }
 
@@ -418,11 +441,13 @@ void Shell::ShowDevTools(const char* jail_id, bool headless) {
 
   ShellDevToolsDelegate* delegate =
       browser_client->shell_browser_main_parts()->devtools_delegate();
-  GURL url = delegate->devtools_http_handler()->GetFrontendURL(agent.get());
+  GURL url = delegate->devtools_http_handler()->GetFrontendURL();
 
   SendEvent("devtools-opened", url.spec());
-  if (headless)
+  if (headless) {
+    // FIXME: DevToolsFrontendHost
     return;
+  }
 
   // Use our minimum set manifest
   base::DictionaryValue manifest;
@@ -441,6 +466,10 @@ void Shell::ShowDevTools(const char* jail_id, bool headless) {
   WebContents::CreateParams create_params(web_contents()->GetBrowserContext(), NULL);
   WebContents* web_contents = WebContents::Create(create_params);
   Shell* shell = new Shell(web_contents, &manifest);
+
+  new ShellDevToolsFrontend(
+      shell,
+      DevToolsAgentHost::GetOrCreateFor(inspected_rvh).get());
 
   int rh_id = shell->web_contents_->GetRenderProcessHost()->GetID();
   ChildProcessSecurityPolicyImpl::GetInstance()->GrantScheme(rh_id, chrome::kFileScheme);
@@ -685,6 +714,10 @@ void Shell::WebContentsCreated(WebContents* source_contents,
 
   // don't pass the url on window.open case
   Shell::Create(source_contents, GURL::EmptyGURL(), manifest.get(), new_contents);
+
+  // in Chromium 32 RenderViewCreated will not be called so the case
+  // should be handled here
+  new nwapi::DispatcherHost(new_contents->GetRenderViewHost());
 }
 
 #if defined(OS_WIN)
@@ -776,6 +809,11 @@ GURL Shell::OverrideDOMStorageOrigin(const GURL& origin) {
   if (!is_devtools())
     return origin;
   return GURL("devtools://");
+}
+
+void Shell::RenderViewCreated(RenderViewHost* render_view_host) {
+  //FIXME: handle removal
+  new nwapi::DispatcherHost(render_view_host);
 }
 
 }  // namespace content

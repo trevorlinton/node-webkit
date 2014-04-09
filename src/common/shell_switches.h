@@ -48,6 +48,7 @@ extern const char kmFullscreen[];
 extern const char kmTransparent[];
 extern const char kmGlass[];
 extern const char kmTaskBar[];
+extern const char kmShowInTaskbar[];
 extern const char kmKiosk[];
 extern const char kmAlwaysOnTop[];
 extern const char kmInitialFocus[];
@@ -59,6 +60,9 @@ extern const char kmPageCache[];
 extern const char kmUserAgent[];
 extern const char kmRemotePages[];
 extern const char kmNewInstance[];
+extern const char kmInjectJSDocStart[];
+extern const char kmInjectJSDocEnd[];
+extern const char kmInjectCSS[];
 
 #if defined(OS_WIN)
 extern const char kPrintRaster[];

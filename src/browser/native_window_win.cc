@@ -20,8 +20,11 @@
 
 #include "content/nw/src/browser/native_window_win.h"
 
+#include <shobjidl.h>
+
 #include "base/strings/utf_string_conversions.h"
 #include "base/values.h"
+#include "base/win/scoped_comptr.h"
 #include "base/win/windows_version.h"
 #include "base/win/wrapped_window_proc.h"
 #include "chrome/browser/platform_util.h"
@@ -38,8 +41,8 @@
 #include "extensions/common/draggable_region.h"
 #include "third_party/skia/include/core/SkPaint.h"
 #include "ui/base/hit_test.h"
-#include "ui/base/win/hwnd_util.h"
-#include "ui/base/win/shell.h"
+#include "ui/gfx/native_widget_types.h"
+#include "ui/gfx/win/hwnd_util.h"
 #include "ui/gfx/path.h"
 #include "ui/gfx/image/image_skia_operations.h"
 #include "ui/views/controls/webview/webview.h"
@@ -563,12 +566,45 @@ void NativeWindowWin::SetResizable(bool resizable) {
   resizable_ = resizable;
 
   // Show/Hide the maximize button.
-  DWORD style = ::GetWindowLong(window_->GetNativeView(), GWL_STYLE);
+  DWORD style = ::GetWindowLong((HWND)window_->GetNativeView(), GWL_STYLE);
   if (resizable)
     style |= WS_MAXIMIZEBOX;
   else
     style &= ~WS_MAXIMIZEBOX;
-  ::SetWindowLong(window_->GetNativeView(), GWL_STYLE, style);
+  ::SetWindowLong((HWND)window_->GetNativeView(), GWL_STYLE, style);
+}
+
+void NativeWindowWin::SetShowInTaskbar(bool show) {
+  if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
+    // Change the owner of native window. Only needed on Windows XP.
+    ::SetWindowLong(window_->GetNativeView(),
+                    GWL_HWNDPARENT,
+                    (LONG)ui::GetHiddenWindow());
+  }
+
+  base::win::ScopedComPtr<ITaskbarList> taskbar;
+  HRESULT result = taskbar.CreateInstance(CLSID_TaskbarList, NULL,
+                                          CLSCTX_INPROC_SERVER);
+  if (FAILED(result)) {
+    VLOG(1) << "Failed creating a TaskbarList object: " << result;
+    return;
+  }
+
+  result = taskbar->HrInit();
+  if (FAILED(result)) {
+    LOG(ERROR) << "Failed initializing an ITaskbarList interface.";
+    return;
+  }
+
+  if (show)
+    result = taskbar->AddTab(window_->GetNativeWindow());
+  else
+    result = taskbar->DeleteTab(window_->GetNativeWindow());
+
+  if (FAILED(result)) {
+    LOG(ERROR) << "Failed to change the show in taskbar attribute";
+    return;
+  }
 }
 
 void NativeWindowWin::SetAlwaysOnTop(bool top) {
@@ -693,6 +729,10 @@ void NativeWindowWin::FlashFrame(bool flash) {
   window_->FlashFrame(flash);
 }
 
+void NativeWindowWin::SetBadgeLabel(const std::string& badge) {
+  // TODO
+}
+
 void NativeWindowWin::SetKiosk(bool kiosk) {
   SetFullscreen(kiosk);
 }
@@ -709,7 +749,7 @@ void NativeWindowWin::SetMenu(nwapi::Menu* menu) {
   menu->Rebuild();
 
   // menu is nwapi::Menu, menu->menu_ is NativeMenuWin,
-  ::SetMenu(window_->GetNativeWindow(), menu->menu_->GetNativeMenu());
+  ::SetMenu((HWND)window_->GetNativeWindow(), menu->menu_->GetNativeMenu());
   // shake the window to get it to respond to adding the menu.
   SetPosition(GetPosition());
 }
@@ -794,6 +834,10 @@ void NativeWindowWin::DeleteDelegate() {
 
 bool NativeWindowWin::ShouldShowWindowTitle() const {
   return has_frame();
+}
+
+bool NativeWindowWin::ShouldHandleOnSize() const {
+  return true;
 }
 
 void NativeWindowWin::OnNativeFocusChange(gfx::NativeView focused_before,
@@ -935,12 +979,20 @@ bool NativeWindowWin::ExecuteWindowsCommand(int command_id) {
     is_maximized_ = false;
     if (shell())
       shell()->SendEvent("unmaximize");
-  } else if ((command_id & sc_mask) == SC_MAXIMIZE) {
+  }
+  return false;
+}
+
+bool NativeWindowWin::HandleSize(unsigned int param, const gfx::Size& size) {
+  if (param == SIZE_MAXIMIZED) {
     is_maximized_ = true;
     if (shell())
       shell()->SendEvent("maximize");
+  }else if (param == SIZE_RESTORED && is_maximized_) {
+    is_maximized_ = false;
+    if (shell())
+      shell()->SendEvent("unmaximize");
   }
-
   return false;
 }
 
@@ -957,7 +1009,7 @@ void NativeWindowWin::SaveWindowPlacement(const gfx::Rect& bounds,
                                           ui::WindowShowState show_state) {
   // views::WidgetDelegate::SaveWindowPlacement(bounds, show_state);
 }
-  
+
 void NativeWindowWin::OnViewWasResized() {
   // Set the window shape of the RWHV.
   DCHECK(window_);
@@ -966,7 +1018,7 @@ void NativeWindowWin::OnViewWasResized() {
   int height = sz.height(), width = sz.width();
   gfx::Path path;
   path.addRect(0, 0, width, height);
-  SetWindowRgn(web_contents()->GetView()->GetNativeView(),
+  SetWindowRgn((HWND)web_contents()->GetView()->GetNativeView(),
                path.CreateNativeRegion(),
                1);
 

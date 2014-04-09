@@ -1,4 +1,4 @@
-**Tint - Node.js + Blink**
+*Tint - Node.js + Blink**
 
 * Download: https://www.trueinteractions.com/
 * Github: https://github.com/trueinteractions/tint/

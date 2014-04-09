@@ -24,6 +24,7 @@
 #include "content/nw/src/browser/native_window.h"
 
 #include "third_party/skia/include/core/SkRegion.h"
+#include "ui/base/win/hidden_window.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/gfx/rect.h"
 #include "ui/views/focus/widget_focus_manager.h"
@@ -69,7 +70,10 @@ class NativeWindowWin : public NativeWindow,
   virtual void SetMaximumSize(int width, int height) OVERRIDE;
   virtual void SetResizable(bool resizable) OVERRIDE;
   virtual void SetAlwaysOnTop(bool top) OVERRIDE;
+<<<<<<< HEAD
   virtual void SetBadgeCount(int count = 0) OVERRIDE;
+=======
+>>>>>>> upstream/master
   virtual void SetShowInTaskbar(bool show = true) OVERRIDE;
   virtual void SetPosition(const std::string& position) OVERRIDE;
   virtual void SetPosition(const gfx::Point& position) OVERRIDE;
@@ -80,6 +84,7 @@ class NativeWindowWin : public NativeWindow,
   virtual void SetTitle(const std::string& title) OVERRIDE;
   virtual void FlashFrame(bool flash) OVERRIDE;
   virtual void SetKiosk(bool kiosk) OVERRIDE;
+  virtual void SetBadgeLabel(const std::string& badge) OVERRIDE;
   virtual bool IsKiosk() OVERRIDE;
   virtual void SetTransparent() OVERRIDE;
   virtual bool IsTransparent() OVERRIDE;
@@ -111,8 +116,12 @@ class NativeWindowWin : public NativeWindow,
   virtual gfx::ImageSkia GetWindowAppIcon() OVERRIDE;
   virtual gfx::ImageSkia GetWindowIcon() OVERRIDE;
   virtual bool ShouldShowWindowTitle() const OVERRIDE;
+<<<<<<< HEAD
   virtual void Notify(const std::string& title, const std::string& text, const std::string& subtitle, bool sound) OVERRIDE;
   virtual void RenderViewCreated(content::RenderViewHost *render_view_host) OVERRIDE;
+=======
+  virtual bool ShouldHandleOnSize()    const OVERRIDE;
+>>>>>>> upstream/master
 
   // WidgetFocusChangeListener implementation.
   virtual void OnNativeFocusChange(gfx::NativeView focused_before,
@@ -141,6 +150,7 @@ class NativeWindowWin : public NativeWindow,
 
   // views::WidgetDelegate implementation.
   virtual bool ExecuteWindowsCommand(int command_id) OVERRIDE;
+  virtual bool HandleSize(unsigned int param, const gfx::Size& size) OVERRIDE;
   virtual bool ExecuteAppCommand(int command_id) OVERRIDE;
   virtual void SaveWindowPlacement(const gfx::Rect& bounds,
                                    ui::WindowShowState show_state) OVERRIDE;

@@ -136,6 +136,14 @@ Window.prototype.handleEvent = function(ev) {
     this.removeListener(ev, listeners_copy[i]);
   }
 
+    if (ev == 'new-win-policy' && arguments.length > 3) {
+        var policy = arguments[3];
+        policy.ignore         =  function () { this.val = 'ignore'; };
+        policy.forceCurrent   =  function () { this.val = 'current'; };
+        policy.forceDownload  =  function () { this.val = 'download'; };
+        policy.forceNewWindow =  function () { this.val = 'new-window'; };
+        policy.forceNewPopup  =  function () { this.val = 'new-popup'; };
+    }
   // Route events to EventEmitter.
   this.emit.apply(this, arguments);
 
@@ -445,9 +453,19 @@ Window.prototype.setAlwaysOnTop = function(flag) {
   CallObjectMethod(this, 'SetAlwaysOnTop', [ Boolean(flag) ]);
 }
 
+Window.prototype.setShowInTaskbar = function(flag) {
+  flag = Boolean(flag);
+  CallObjectMethod(this, 'SetShowInTaskbar', [ flag ]);
+}
+
 Window.prototype.requestAttention = function(flash) {
   flash = Boolean(flash);
   CallObjectMethod(this, 'RequestAttention', [ flash ]);
+}
+
+Window.prototype.setBadgeLabel = function(label) {
+  label = "" + label;
+  CallObjectMethod(this, 'SetBadgeLabel', [ label ]);
 }
 
 Window.prototype.setPosition = function(position) {
@@ -476,18 +494,47 @@ Window.prototype.reloadDev = function() {
   this.reload(3);
 }
 
-Window.prototype.capturePage = function(callback, image_format) {
-  if (image_format != 'jpeg' && image_format != 'png') {
-    image_format = 'jpeg';
+var mime_types = {
+  'jpeg' : 'image/jpeg',
+  'png'  : 'image/png'
+}
+
+Window.prototype.capturePage = function(callback, image_format_options) {
+  var options;
+
+  // Be compatible with the old api capturePage(callback, [format string])
+  if (typeof image_format_options == 'string' || image_format_options instanceof String) {
+    options = {
+      format : image_format_options
+    };
+  } else {
+    options = image_format_options || {};
+  }
+
+  if (options.format != 'jpeg' && options.format != 'png') {
+    options.format = 'jpeg';
   }
 
   if (typeof callback == 'function') {
     this.once('__nw_capturepagedone', function(imgdata) {
-      callback(imgdata);
+      switch(options.datatype){
+        case 'buffer' :
+          callback(new Buffer(imgdata, "base64"));
+          break;
+        case 'raw' :
+          callback(imgdata);
+        case 'datauri' :
+        default :
+          callback('data:' + mime_types[options.format] + ';base64,' + imgdata );
+      }
     });
   }
 
-  CallObjectMethod(this, 'CapturePage', [image_format]);
-}
+  CallObjectMethod(this, 'CapturePage', [options.format]);
+};
+
+    Window.prototype.eval = function(frame, script) {
+        return CallObjectMethod(this, 'EvaluateScript', frame, script);
+    };
 
 }  // function Window.init

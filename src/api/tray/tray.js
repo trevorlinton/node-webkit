@@ -36,7 +36,7 @@ function Tray(option) {
     option.shadowIcon = String(option.icon);
     option.icon = String(option.icon);//nw.getAbsolutePath(option.icon);
   }
-  
+
   if (option.hasOwnProperty('alticon')) {
     option.shadowAlticon = String(option.alticon);
     option.alticon = String(option.alticon);//nw.getAbsolutePath(option.alticon);
@@ -46,11 +46,13 @@ function Tray(option) {
     option.tooltip = String(option.tooltip);
 
   if (option.hasOwnProperty('click')) {
-    if (typeof option.click != 'function')
+    if (typeof option.click != 'function') {
       throw new String("'click' must be a valid Function");
-    else
+    } else {
       this.click = option.click;
-  }
+    }
+   }
+
   if (option.hasOwnProperty('menu')) {
     if (v8_util.getConstructorName(option.menu) != 'Menu')
       throw new String("'menu' must be a valid Menu");
@@ -126,13 +128,13 @@ Tray.prototype.remove = function() {
 }
 
 Tray.prototype.handleEvent = function(ev) {
-  if (ev == 'click') {
-    // Emit click handler
-    if (typeof this.click == 'function')
-      this.click();
-  }
-
-  // Emit generate event handler
-  exports.Base.prototype.handleEvent.apply(this, arguments);
+ if (ev == 'click') {
+   // Emit click handler
+   if (typeof this.click == 'function'){
+     this.click();
+   }
+ }
+ // Emit generate event handler
+ exports.Base.prototype.handleEvent.apply(this, arguments);
 }
 exports.Tray = Tray;

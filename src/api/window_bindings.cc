@@ -27,13 +27,24 @@
 #include "grit/nw_resources.h"
 #undef LOG
 using namespace WebCore;
+#if defined(OS_WIN)
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
 
-#include "V8HTMLIFrameElement.h"
+
+#include "third_party/WebKit/Source/config.h"
 #include "third_party/WebKit/Source/core/html/HTMLIFrameElement.h"
 #include "third_party/WebKit/public/web/WebFrame.h"
 #include "third_party/WebKit/public/web/WebView.h"
 #include "third_party/WebKit/Source/web/WebFrameImpl.h"
+#include "third_party/WebKit/public/web/WebScriptSource.h"
 
+#undef CHECK
+#include "V8HTMLIFrameElement.h"
+
+using WebKit::WebScriptSource;
+using WebKit::WebFrame;
 
 namespace nwapi {
 
@@ -103,8 +114,28 @@ WindowBindings::CallObjectMethod(const v8::FunctionCallbackInfo<v8::Value>& args
     return;
   }
 
-  if (method == "setDevToolsJail") {
-    WebKit::WebFrame* main_frame = render_view->GetWebView()->mainFrame();
+  WebFrame* main_frame = render_view->GetWebView()->mainFrame();
+  if (method == "EvaluateScript") {
+    v8::Handle<v8::Value> result;
+    v8::Handle<v8::Object> frm = v8::Handle<v8::Object>::Cast(args[2]);
+    WebFrame* web_frame = NULL;
+    if (frm->IsNull()) {
+      web_frame = main_frame;
+    }else{
+      WebCore::HTMLIFrameElement* iframe = WebCore::V8HTMLIFrameElement::toNative(frm);
+      web_frame = WebKit::WebFrameImpl::fromFrame(iframe->contentFrame());
+    }
+#if defined(OS_WIN)
+    base::string16 jscript((WCHAR*)*v8::String::Value(args[3]));
+#else
+    base::string16 jscript = *v8::String::Value(args[3]);
+#endif
+    if (web_frame) {
+      result = web_frame->executeScriptAndReturnValue(WebScriptSource(jscript));
+    }
+    args.GetReturnValue().Set(result);
+    return;
+  } else if (method == "setDevToolsJail") {
     v8::Handle<v8::Object> frm = v8::Handle<v8::Object>::Cast(args[2]);
     if (frm->IsNull()) {
       main_frame->setDevtoolsJail(NULL);
@@ -155,7 +186,8 @@ WindowBindings::CallObjectMethodSync(const v8::FunctionCallbackInfo<v8::Value>& 
     double zoom_level = args[2]->ToNumber()->Value();
     render_view->OnSetZoomLevel(zoom_level);
     args.GetReturnValue().Set(v8::Undefined());
-  } 
+    return;
+  }
   args.GetReturnValue().Set(remote::CallObjectMethodSync(routing_id, object_id, "Window", method, args[2]));
 }
 

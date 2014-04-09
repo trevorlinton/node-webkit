@@ -98,6 +98,7 @@ class NativeWindow {
   virtual void EndOffclientMouseMove() = 0;
   virtual void SetTitle(const std::string& title) = 0;
   virtual void FlashFrame(bool flash) = 0;
+  virtual void SetBadgeLabel(const std::string& badge) = 0;
   virtual void SetKiosk(bool kiosk) = 0;
   virtual bool IsKiosk() = 0;
   virtual void SetTransparent() = 0;

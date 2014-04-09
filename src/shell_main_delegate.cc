@@ -59,6 +59,7 @@ using namespace file_util;
 #if defined(OS_WIN)
 #include "base/logging_win.h"
 #include <initguid.h>
+#include "content/nw/src/breakpad_win.h"
 #endif
 
 #include "ipc/ipc_message.h"  // For IPC_MESSAGE_LOG_ENABLED.
@@ -154,7 +155,7 @@ void ShellMainDelegate::PreSandboxStartup() {
       command_line->GetSwitchValueASCII(switches::kProcessType);
 
   if (process_type != switches::kZygoteProcess)
-    InitCrashReporter();
+    breakpad::InitCrashReporter();
 
   // Just prevent sandbox.
   command_line->AppendSwitch(switches::kNoSandbox);
@@ -170,8 +171,6 @@ void ShellMainDelegate::PreSandboxStartup() {
 
   // Allow file:// URIs can read other file:// URIs by default.
   command_line->AppendSwitch(switches::kAllowFileAccessFromFiles);
-  command_line->AppendSwitch(switches::kEnableExperimentalWebPlatformFeatures);
-  command_line->AppendSwitch(switches::kEnableCssShaders);
 }
 
 int ShellMainDelegate::RunProcess(
@@ -222,7 +221,7 @@ ContentRendererClient* ShellMainDelegate::CreateContentRendererClient() {
 void ShellMainDelegate::ZygoteForked() {
   // Needs to be called after we have chrome::DIR_USER_DATA.  BrowserMain sets
   // this up for the browser process in a different manner.
-  InitCrashReporter();
+  breakpad::InitCrashReporter();
 }
 #endif
 

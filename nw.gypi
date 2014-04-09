@@ -11,11 +11,25 @@
       }],
     ],
   },
+  'target_defaults': {
+    'configurations': {
+      'Release_Base': {
+        # Set flags to unconditionally optimize chrome_frame_launcher.exe
+        # for release builds.
+        'msvs_settings': {
+          'VCLibrarianTool': {
+            'AdditionalOptions': ['/ltcg', '/expectedoutputsize:600000000'],
+          },
+        },
+      },
+    },
+  },
   'targets': [
     {
       'target_name': 'nw_lib',
       'type': 'static_library',
       'defines!': ['CONTENT_IMPLEMENTATION'],
+      'defines': ['BREAKPAD_IMPLEMENTATION'],
       'variables': {
         'chromium_code': 1,
       },
@@ -45,7 +59,7 @@
         '<(DEPTH)/ui/ui.gyp:ui_resources',
         '<(DEPTH)/url/url.gyp:url_lib',
         '<(DEPTH)/v8/tools/gyp/v8.gyp:v8',
-        '<(DEPTH)/webkit/support/webkit_support.gyp:webkit_support',
+        '<(DEPTH)/webkit/glue/webkit_glue.gyp:glue',
         '<(DEPTH)/third_party/zlib/zlib.gyp:minizip',
         '<(DEPTH)/third_party/WebKit/public/blink.gyp:blink',
         'nw_resources',
@@ -68,20 +82,27 @@
         #'<(DEPTH)/tint_ide/
         #tintide_devtools_delegate.h',
         # support for about flags.
-        '<(DEPTH)/components/nacl/common/nacl_switches.h',
-        '<(DEPTH)/components/nacl/common/nacl_switches.cc',
-        '<(DEPTH)/ui/message_center/message_center_switches.cc',
-        '<(DEPTH)/ui/message_center/message_center_switches.h',
-        '<(DEPTH)/extensions/common/switches.h',
-        '<(DEPTH)/extensions/common/switches.cc',
-        '<(DEPTH)/chrome/common/chrome_switches.cc',
-        '<(DEPTH)/chrome/common/chrome_switches.h',
-        '<(DEPTH)/chrome/browser/about_flags.cc',
-        '<(DEPTH)/chrome/browser/about_flags.h',
-        '<(DEPTH)/chrome/common/child_process_logging.h',
-        '<(DEPTH)/chrome/common/child_process_logging_mac.mm',
-        '<(DEPTH)/chrome/common/child_process_logging_posix.cc',
-        '<(DEPTH)/chrome/common/child_process_logging_win.cc',
+        #'<(DEPTH)/components/nacl/common/nacl_switches.h',
+        #'<(DEPTH)/components/nacl/common/nacl_switches.cc',
+        #'<(DEPTH)/ui/message_center/message_center_switches.cc',
+        #'<(DEPTH)/ui/message_center/message_center_switches.h',
+        #'<(DEPTH)/extensions/common/switches.h',
+        #'<(DEPTH)/extensions/common/switches.cc',
+        #'<(DEPTH)/chrome/common/chrome_switches.cc',
+        #'<(DEPTH)/chrome/common/chrome_switches.h',
+        #'<(DEPTH)/chrome/browser/about_flags.cc',
+        #'<(DEPTH)/chrome/browser/about_flags.h',
+        #'<(DEPTH)/chrome/common/child_process_logging.h',
+        #'<(DEPTH)/chrome/common/child_process_logging_mac.mm',
+        #'<(DEPTH)/chrome/common/child_process_logging_posix.cc',
+        #'<(DEPTH)/chrome/common/child_process_logging_win.cc',
+        '<(DEPTH)/chrome/browser/chrome_process_finder_win.cc',
+        '<(DEPTH)/chrome/browser/chrome_process_finder_win.h',
+        #'<(DEPTH)/chrome/common/child_process_logging.h',
+        #'<(DEPTH)/chrome/common/child_process_logging_mac.mm',
+        #'<(DEPTH)/chrome/common/child_process_logging_posix.cc',
+        #'<(DEPTH)/chrome/common/child_process_logging_win.cc',
+>>>>>>> upstream/master
         '<(DEPTH)/chrome/common/crash_keys.cc',
         '<(DEPTH)/chrome/common/dump_without_crashing.cc',
         '<(DEPTH)/chrome/common/env_vars.cc',
@@ -217,6 +238,8 @@
         'src/browser/printing/print_job_worker_owner.h',
         'src/browser/printing/printing_message_filter.cc',
         'src/browser/printing/printing_message_filter.h',
+        'src/browser/printing/printing_ui_web_contents_observer.cc',
+        'src/browser/printing/printing_ui_web_contents_observer.h',
         'src/browser/printing/printer_query.cc',
         'src/browser/printing/printer_query.h',
         'src/browser/printing/print_view_manager.cc',
@@ -322,6 +345,8 @@
         'src/shell_content_browser_client.h',
         'src/shell_content_client.cc',
         'src/shell_content_client.h',
+        'src/shell_devtools_frontend.cc',
+        'src/shell_devtools_frontend.h',
         'src/shell_main_delegate.cc',
         'src/shell_main_delegate.h',
         'src/shell_quota_permission_context.cc',
@@ -330,6 +355,11 @@
       'msvs_settings': {
         'VCLinkerTool': {
           'SubSystem': '2',  # Set /SUBSYSTEM:WINDOWS
+        },
+      },
+      'configurations': {
+        'Debug': {
+          'defines': [ 'DEBUG' ],
         },
       },
       'conditions': [
@@ -619,7 +649,7 @@
         },
       ],
       'dependencies': [
-        '<(DEPTH)/chrome/chrome.gyp:chromedriver2_server',
+        '<(DEPTH)/chrome/chrome.gyp:chromedriver',
       ],
       'conditions': [
         ['OS == "linux"', {

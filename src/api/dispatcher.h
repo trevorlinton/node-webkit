@@ -23,13 +23,20 @@
 
 #include "base/basictypes.h"
 #include "content/public/renderer/render_view_observer.h"
+#include "third_party/WebKit/public/web/WebNavigationPolicy.h"
+#include <v8.h>
 
 namespace base {
 class ListValue;
 }
 
+namespace content {
+class RenderView;
+}
+
 namespace WebKit {
 class WebFrame;
+class WebURLRequest;
 }
 
 namespace nwapi {
@@ -39,11 +46,23 @@ class Dispatcher : public content::RenderViewObserver {
   explicit Dispatcher(content::RenderView* render_view);
   virtual ~Dispatcher();
 
+  static v8::Handle<v8::Object> GetObjectRegistry();
+  static v8::Handle<v8::Value> GetWindowId(WebKit::WebFrame* frame);
+  static void willHandleNavigationPolicy(
+    content::RenderView* rv,
+    WebKit::WebFrame* frame,
+    const WebKit::WebURLRequest& request,
+    WebKit::WebNavigationPolicy* policy);
+
  private:
   // RenderViewObserver implementation.
   virtual bool OnMessageReceived(const IPC::Message& message) OVERRIDE;
   virtual void DraggableRegionsChanged(WebKit::WebFrame* frame) OVERRIDE;
   virtual void ZoomLevelChanged() OVERRIDE;
+  virtual void DidFinishDocumentLoad(WebKit::WebFrame* frame) OVERRIDE;
+  virtual void DidCreateDocumentElement(WebKit::WebFrame* frame) OVERRIDE;
+
+  void documentCallback(const char* ev, WebKit::WebFrame* frame);
 
   void OnEvent(int object_id,
                std::string event,
