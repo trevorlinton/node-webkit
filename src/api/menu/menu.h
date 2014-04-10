@@ -47,6 +47,7 @@ class NativeWindowGtk;
 #elif defined(OS_WIN)
 #include "content/nw/src/api/menu/menu_delegate_win.h"
 #include "ui/views/controls/menu/native_menu_win.h"
+#include "chrome/browser/status_icons/status_icon_menu_model.h"
 
 namespace nw {
 class NativeWindowWin;
@@ -81,7 +82,7 @@ class MenuItem;
 class Menu : public Base {
  public:
   Menu(int id,
-       DispatcherHost* dispatcher_host,
+       const base::WeakPtr<DispatcherHost>& dispatcher_host,
        const base::DictionaryValue& option);
   virtual ~Menu();
 

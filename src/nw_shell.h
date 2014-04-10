@@ -113,7 +113,7 @@ class Shell : public WebContentsDelegate,
   void SendEvent(const std::string& event, const base::ListValue& args);
 
   // Decide whether we should close the window.
-  bool ShouldCloseWindow();
+  bool ShouldCloseWindow(bool quit = false);
 
   virtual GURL OverrideDOMStorageOrigin(const GURL& origin) OVERRIDE;
 
@@ -144,6 +144,8 @@ class Shell : public WebContentsDelegate,
   bool force_close() const { return force_close_; }
   void set_id(int id) { id_ = id; }
   int id() const { return id_; }
+
+  virtual void RenderViewCreated(RenderViewHost* render_view_host) OVERRIDE;
 
  protected:
   // content::WebContentsObserver implementation.

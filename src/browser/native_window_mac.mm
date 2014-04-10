@@ -269,9 +269,9 @@ enum {
 }
 - (void)setShell:(const base::WeakPtr<content::Shell>&)shell;
 - (void)showDevTools:(id)sender;
-- (void)closeAllWindows:(id)sender;
 - (void)setTransparent;
 - (BOOL)getTransparent;
+- (void)closeAllWindowsQuit:(id)sender;
 @end
 
 @implementation ShellNSWindow
@@ -285,8 +285,8 @@ enum {
     shell_->ShowDevTools();
 }
 
-- (void)closeAllWindows:(id)sender {
-  nwapi::App::CloseAllWindows();
+- (void)closeAllWindowsQuit:(id)sender {
+  nwapi::App::CloseAllWindows(false, true);
 }
 
 - (void)setTransparent {
@@ -797,6 +797,22 @@ void NativeWindowCocoa::SetAlwaysOnTop(bool top) {
   [window() setLevel:(top ? NSFloatingWindowLevel : NSNormalWindowLevel)];
 }
 
+void NativeWindowCocoa::SetShowInTaskbar(bool show) {
+  ProcessSerialNumber psn = { 0, kCurrentProcess };
+  if (!show) {
+    NSArray* windowList = [[NSArray alloc] init];
+    windowList = [NSWindow windowNumbersWithOptions:NSWindowNumberListAllSpaces];
+    for (unsigned int i = 0; i < [windowList count]; ++i) {
+      NSWindow *window = [NSApp windowWithWindowNumber:[[windowList objectAtIndex:i] integerValue]];
+      [window setCanHide:NO];
+    }
+    TransformProcessType(&psn, kProcessTransformToUIElementApplication);
+  }
+  else {
+    TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+  }
+}
+
 void NativeWindowCocoa::SetPosition(const std::string& position) {
   if (position == "center")
     [window() center];
@@ -825,6 +841,10 @@ void NativeWindowCocoa::FlashFrame(bool flash) {
     [NSApp cancelUserAttentionRequest:attention_request_id_];
     attention_request_id_ = 0;
   }
+}
+
+void NativeWindowCocoa::SetBadgeLabel(const std::string& badge) {
+  [[NSApp dockTile] setBadgeLabel:base::SysUTF8ToNSString(badge)];
 }
 
 void NativeWindowCocoa::SetKiosk(bool kiosk) {

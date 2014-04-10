@@ -46,8 +46,27 @@
 }
 @end
 
-namespace nwapi {
 
+@interface MacTrayObserver : NSObject {
+@private
+    nwapi::Tray* tray_;
+}
+- (void)setBacking:(nwapi::Tray*)tray_;
+- (void)onClick:(id)sender;
+@end
+
+@implementation MacTrayObserver
+- (void)setBacking:(nwapi::Tray*)newTray {
+    tray_ = newTray;
+}
+- (void)onClick:(id)sender {
+    base::ListValue args;
+    tray_->dispatcher_host()->SendEvent(tray_,"click",args);
+}
+@end
+
+namespace nwapi {
+    
 void Tray::Create(const base::DictionaryValue& option) {
   NSStatusBar *status_bar = [NSStatusBar systemStatusBar];
   MacTrayObserver* observer = [[MacTrayObserver alloc] init];

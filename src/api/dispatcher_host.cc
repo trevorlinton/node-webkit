@@ -50,13 +50,20 @@ IDMap<Base, IDMapOwnPointer> nwapi::DispatcherHost::objects_registry_;
 int nwapi::DispatcherHost::next_object_id_ = 1;
 static std::map<content::RenderViewHost*, DispatcherHost*> g_dispatcher_host_map;
 
-DispatcherHost::DispatcherHost(content::RenderViewHost* render_view_host)
-    : content::RenderViewHostObserver(render_view_host) {
-  g_dispatcher_host_map[render_view_host] = this;
+DispatcherHost::DispatcherHost(content::RenderViewHost* host)
+  : content::WebContentsObserver(content::WebContents::FromRenderViewHost(host)),
+    render_view_host_(host),
+    weak_ptr_factory_(this) {
+  g_dispatcher_host_map[render_view_host_] = this;
 }
 
 DispatcherHost::~DispatcherHost() {
   g_dispatcher_host_map.erase(render_view_host());
+  std::set<int>::iterator it;
+  for (it = objects_.begin(); it != objects_.end(); it++) {
+    if (objects_registry_.Lookup(*it))
+      objects_registry_.Remove(*it);
+  }
 }
 
 DispatcherHost*
@@ -88,7 +95,7 @@ void DispatcherHost::SendEvent(Base* object,
 }
 
 bool DispatcherHost::Send(IPC::Message* message) {
-  return content::RenderViewHostObserver::Send(message);
+  return content::WebContentsObserver::Send(message);
 }
 
 bool DispatcherHost::OnMessageReceived(const IPC::Message& message) {
@@ -108,12 +115,18 @@ bool DispatcherHost::OnMessageReceived(const IPC::Message& message) {
                         OnUncaughtException);
     IPC_MESSAGE_HANDLER(ShellViewHostMsg_GetShellId, OnGetShellId);
     IPC_MESSAGE_HANDLER(ShellViewHostMsg_CreateShell, OnCreateShell);
-    IPC_MESSAGE_HANDLER(ShellViewHostMsg_GrantUniversalPermissions, OnGrantUniversalPermissions);
     IPC_MESSAGE_HANDLER(ShellViewHostMsg_AllocateId, OnAllocateId);
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
 
   return handled;
+}
+
+void DispatcherHost::RenderViewHostChanged(content::RenderViewHost* old_host,
+                                           content::RenderViewHost* new_host) {
+  // LOG(INFO) << "RenderViewHostChanged(" << this << "): " << old_host << " --> " << new_host << " ; " << render_view_host_;
+  if (render_view_host_ != new_host)
+    delete this;
 }
 
 void DispatcherHost::OnAllocateObject(int object_id,
@@ -124,28 +137,31 @@ void DispatcherHost::OnAllocateObject(int object_id,
              << " option:" << option;
 
   if (type == "Menu") {
-    objects_registry_.AddWithID(new Menu(object_id, this, option), object_id);
+    objects_registry_.AddWithID(new Menu(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   } else if (type == "MenuItem") {
     objects_registry_.AddWithID(
-        new MenuItem(object_id, this, option), object_id);
+ 	new MenuItem(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   } else if (type == "Control") {
     objects_registry_.AddWithID(new Control(object_id, this, option), object_id);
   } else if (type == "Tray") {
-    objects_registry_.AddWithID(new Tray(object_id, this, option), object_id);
+    objects_registry_.AddWithID(new Tray(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   } else if (type == "Clipboard") {
     objects_registry_.AddWithID(
-        new Clipboard(object_id, this, option), object_id);
+        new Clipboard(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   } else if (type == "Window") {
-    objects_registry_.AddWithID(new Window(object_id, this, option), object_id);
+    objects_registry_.AddWithID(new Window(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   } else {
     LOG(ERROR) << "Allocate an object of unknown type: " << type;
-    objects_registry_.AddWithID(new Base(object_id, this, option), object_id);
+    objects_registry_.AddWithID(new Base(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   }
+  objects_.insert(object_id);
 }
 
 void DispatcherHost::OnDeallocateObject(int object_id) {
   DLOG(INFO) << "OnDeallocateObject: object_id:" << object_id;
-  objects_registry_.Remove(object_id);
+  if (objects_registry_.Lookup(object_id))
+    objects_registry_.Remove(object_id);
+  objects_.erase(object_id);
 }
 
 void DispatcherHost::OnCallObjectMethod(
@@ -180,12 +196,13 @@ void DispatcherHost::OnCallObjectMethodSync(
              << " arguments:" << arguments;
 
   Base* object = GetApiObject(object_id);
-  LOG(WARNING) << "Unknown object: " << object_id
+  if (object)
+    object->CallSync(method, arguments, result);
+  else
+    DLOG(WARNING) << "Unknown object: " << object_id
              << " type:" << type
              << " method:" << method
              << " arguments:" << arguments;
-  if (object)
-    object->CallSync(method, arguments, result);
 }
 
 void DispatcherHost::OnCallStaticMethod(
@@ -256,6 +273,14 @@ void DispatcherHost::OnCreateShell(const std::string& url,
   WebContents::CreateParams create_params(browser_context,
                                           new_renderer ? NULL : base_web_contents->GetSiteInstance());
 
+  std::string filename;
+  if (new_manifest->GetString(switches::kmInjectJSDocStart, &filename))
+    create_params.nw_inject_js_doc_start = filename;
+  if (new_manifest->GetString(switches::kmInjectJSDocEnd, &filename))
+    create_params.nw_inject_js_doc_end = filename;
+  if (new_manifest->GetString(switches::kmInjectCSS, &filename))
+    create_params.nw_inject_css_fn = filename;
+
   WebContents* web_contents = content::WebContentsImpl::CreateWithOpener(
       create_params,
       static_cast<content::WebContentsImpl*>(base_web_contents));
@@ -279,16 +304,6 @@ void DispatcherHost::OnCreateShell(const std::string& url,
     DispatcherHost* dhost = FindDispatcherHost(web_contents->GetRenderViewHost());
     dhost->OnAllocateObject(object_id, "Window", *new_manifest.get());
   }
-}
-
-void DispatcherHost::OnGrantUniversalPermissions(int *ret) {
-  content::Shell* shell =
-      content::Shell::FromRenderViewHost(render_view_host());
-  if (shell->nodejs()) {
-    content::ChildProcessSecurityPolicy::GetInstance()->GrantUniversalAccess(shell->web_contents()->GetRenderProcessHost()->GetID());
-    *ret = 1;
-  }else
-    *ret = 0;
 }
 
 void DispatcherHost::OnAllocateId(int * ret) {
