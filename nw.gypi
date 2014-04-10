@@ -65,8 +65,7 @@
         '<(DEPTH)/tint_ide/tintide_devtools_window.cc',
         '<(DEPTH)/tint_ide/tintide_devtools_window.h',
         '<(DEPTH)/tint_ide/tintide_devtools_delegate.cc',
-        '<(DEPTH)/tint_ide/
-        tintide_devtools_delegate.h',
+        '<(DEPTH)/tint_ide/tintide_devtools_delegate.h',
         # support for about flags.
         '<(DEPTH)/components/nacl/common/nacl_switches.h',
         '<(DEPTH)/components/nacl/common/nacl_switches.cc',
@@ -76,8 +75,6 @@
         '<(DEPTH)/extensions/common/switches.cc',
         '<(DEPTH)/chrome/common/chrome_switches.cc',
         '<(DEPTH)/chrome/common/chrome_switches.h',
-        '<(DEPTH)/chrome/browser/about_flags.cc',
-        '<(DEPTH)/chrome/browser/about_flags.h',
         '<(DEPTH)/chrome/common/child_process_logging.h',
         '<(DEPTH)/chrome/common/child_process_logging_mac.mm',
         '<(DEPTH)/chrome/common/child_process_logging_posix.cc',
