@@ -145,13 +145,12 @@ class Shell : public WebContentsDelegate,
   void set_id(int id) { id_ = id; }
   int id() const { return id_; }
 
-  virtual void RenderViewCreated(RenderViewHost* render_view_host) OVERRIDE;
+  //virtual void RenderViewCreated(RenderViewHost* render_view_host) OVERRIDE;
 
  protected:
   // content::WebContentsObserver implementation.
   virtual bool OnMessageReceived(const IPC::Message& message) OVERRIDE;
   virtual void RenderViewCreated(RenderViewHost* render_view_host) OVERRIDE;
-  // content::WebContentsDelegate implementation.
   virtual WebContents* OpenURLFromTab(WebContents* source,
                                       const OpenURLParams& params) OVERRIDE;
   virtual void LoadingStateChanged(WebContents* source) OVERRIDE;

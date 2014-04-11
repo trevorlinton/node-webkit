@@ -142,7 +142,8 @@ void DispatcherHost::OnAllocateObject(int object_id,
     objects_registry_.AddWithID(
  	new MenuItem(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   } else if (type == "Control") {
-    objects_registry_.AddWithID(new Control(object_id, this, option), object_id);
+    objects_registry_.AddWithID(
+	new Control(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   } else if (type == "Tray") {
     objects_registry_.AddWithID(new Tray(object_id, weak_ptr_factory_.GetWeakPtr(), option), object_id);
   } else if (type == "Clipboard") {

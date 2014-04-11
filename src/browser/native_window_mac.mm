@@ -737,7 +737,7 @@ gfx::Size NativeWindowCocoa::GetSize() {
   NSRect frame = [window_ frame];
   return gfx::Size(frame.size.width, frame.size.height);
 }
-
+/*
 void NativeWindowCocoa::SetShowInTaskbar(bool show) {
   if(show) {
     std::vector<content::Shell*> windows = content::Shell::windows();
@@ -757,7 +757,7 @@ void NativeWindowCocoa::SetShowInTaskbar(bool show) {
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
   }
 }
-
+*/
 void NativeWindowCocoa::SetBadgeCount(int count) {
   NSApplication *myApp = [NSApplication sharedApplication];
   NSDockTile *dockTile = [myApp dockTile];

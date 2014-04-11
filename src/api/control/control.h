@@ -60,7 +60,7 @@ namespace nwapi {
 class Control : public Base {
  public:
   Control(int id,
-       DispatcherHost* dispatcher_host,
+       const base::WeakPtr<DispatcherHost>& dispatcher_host,
        const base::DictionaryValue& option);
   virtual ~Control();
 

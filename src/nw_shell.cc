@@ -621,6 +621,8 @@ void Shell::RenderViewCreated(RenderViewHost* render_view_host) {
     window_->RenderViewCreated(render_view_host);
 #endif
   }
+  //FIXME: handle removal
+  new nwapi::DispatcherHost(render_view_host);
 }
 
 WebContents* Shell::OpenURLFromTab(WebContents* source,
@@ -809,11 +811,6 @@ GURL Shell::OverrideDOMStorageOrigin(const GURL& origin) {
   if (!is_devtools())
     return origin;
   return GURL("devtools://");
-}
-
-void Shell::RenderViewCreated(RenderViewHost* render_view_host) {
-  //FIXME: handle removal
-  new nwapi::DispatcherHost(render_view_host);
 }
 
 }  // namespace content
