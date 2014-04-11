@@ -64,8 +64,15 @@ INT_PTR CALLBACK ShellLoginDialog::DialogProc(HWND dialog,
       break;
     }
     case WM_DESTROY: {
+#if defined(_WIN64)
+
+      ShellLoginDialog* owner = reinterpret_cast<ShellLoginDialog*>(
+          GetWindowLongPtr(dialog, DWLP_USER));
+
+#else
       ShellLoginDialog* owner = reinterpret_cast<ShellLoginDialog*>(
           GetWindowLongPtr(dialog, DWL_USER));
+#endif
       owner->dialog_win_ = NULL;
       owner->ReleaseSoon();
 	  break;
