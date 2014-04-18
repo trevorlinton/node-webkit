@@ -24,7 +24,7 @@ function Control(option) {
   v8_util.setHiddenValue(this, 'items', []);
   nw.allocateObject(this, option);
 }
-require('util').inherits(Control, exports.Base);
+requireNode('util').inherits(Control, exports.Base);
 
 Control.prototype.__defineGetter__('items', function() {
   return v8_util.getHiddenValue(this, 'items');

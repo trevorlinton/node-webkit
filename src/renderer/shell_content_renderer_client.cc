@@ -281,7 +281,7 @@ void ShellContentRendererClient::InstallNodeSymbols(
   // Test if protocol is 'nw:'
   // test for 'about:blank' is also here becuase window.open would
   // open 'about:blank' first // FIXME
-  bool is_nw_protocol = url.SchemeIs("nw") || url.SchemeIs("embed") || !url.is_valid();
+  bool is_nw_protocol = url.SchemeIs("app") ||  url.SchemeIs("nw") || url.SchemeIs("embed") || !url.is_valid();
 
   if (use_node || is_nw_protocol) {
     frame->setNodeJS(true);
@@ -348,7 +348,11 @@ void ShellContentRendererClient::InstallNodeSymbols(
         "    return nwDispatcher.requireNwGui();"
         "  return global.require(name);"
         "};"
-
+        "window.requireNode = function(name) {"
+        "  if (name == 'nw.gui')"
+        "    return nwDispatcher.requireNwGui();"
+        "  return global.require(name);"
+        "};"
         // Save node-webkit version
         "process.versions['node-webkit'] = '" NW_VERSION_STRING "';"
         "process.versions['chromium'] = '" CHROME_VERSION "';"
