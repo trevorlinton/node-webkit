@@ -70,7 +70,7 @@ describe('node-remote', function() {
           } else {
             done();
           }
-
+          socket.end();
         });
 <<<<<<< HEAD:tests/automatic_tests/node-remote/mocha_test.js
         socket.write('8080');

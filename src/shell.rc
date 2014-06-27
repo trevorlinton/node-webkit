@@ -1,4 +1,4 @@
-// Microsoft Visual C++ generated resource script.
+//Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -10,15 +10,11 @@
 #define APSTUDIO_HIDDEN_SYMBOLS
 #include "windows.h"
 #undef APSTUDIO_HIDDEN_SYMBOLS
-
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
-/////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
-
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+LANGUAGE 9, 1
 #pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
@@ -26,13 +22,12 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 // TEXTINCLUDE
 //
-
-1 TEXTINCLUDE 
+1 TEXTINCLUDE  
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE  
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -40,14 +35,13 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE  
 BEGIN
     "\r\n"
     "\0"
 END
 
 #endif    // APSTUDIO_INVOKED
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -60,7 +54,7 @@ CAPTION "Alert"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,184,55,50,14
-    LTEXT           "",IDC_DIALOGTEXT,16,17,210,30,SS_NOPREFIX
+    LTEXT           "",IDC_DIALOGTEXT,16,17,210,30, SS_NOPREFIX
 END
 
 IDD_CONFIRM DIALOGEX 0, 0, 241, 76
@@ -70,7 +64,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,184,55,50,14
     DEFPUSHBUTTON   "OK",IDOK,131,55,50,14
-    LTEXT           "",IDC_DIALOGTEXT,16,17,210,30,SS_NOPREFIX
+    LTEXT           "",IDC_DIALOGTEXT,16,17,210,30, SS_NOPREFIX
 END
 
 IDD_PROMPT DIALOGEX 0, 0, 241, 76
@@ -79,7 +73,7 @@ CAPTION "Prompt"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,131,55,50,14
-    LTEXT           "",IDC_DIALOGTEXT,16,17,210,18,SS_NOPREFIX
+    LTEXT           "",IDC_DIALOGTEXT,16,17,210,18, SS_NOPREFIX
     PUSHBUTTON      "Cancel",IDCANCEL,184,55,50,14
     EDITTEXT        IDC_PROMPTEDIT,15,33,210,14,ES_AUTOHSCROLL
 END
@@ -89,7 +83,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTI
 CAPTION "Authentication Required"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "",IDC_DIALOG_MESSAGETEXT,12,7,215,25
+    LTEXT           "", IDC_DIALOG_MESSAGETEXT, 12,7,215,25
     LTEXT           "User Name: ",IDC_DIALOG_USERNAMETEXT,30,42,50,14
     LTEXT           "Password: ",IDC_DIALOG_PASSWORDTEXT,30,69,50,14
     EDITTEXT        IDC_USERNAMEEDIT,84,38,125,14,ES_AUTOHSCROLL
@@ -97,7 +91,6 @@ BEGIN
     DEFPUSHBUTTON   "Log In",IDOK,131,88,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,184,88,50,14
 END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -133,58 +126,8 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "resources\\nw.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,3,4
- PRODUCTVERSION 1,2,3,4
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
 #endif
- FILEOS 0x40004L
- FILETYPE 0x0L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "040904b0"
-        BEGIN
-            VALUE "CompanyName", "COMPANY_NAME                                           "
-            VALUE "FileDescription", "DESCRIPTION                                            "
-            VALUE "FileVersion", "FILE_VERSION                                           "
-            VALUE "InternalName", "PRODUCT_NAME                                           "
-            VALUE "LegalCopyright", "COPYRIGHT                                              "
-            VALUE "OriginalFilename", "ORIGINAL_FILE_NAME                                     "
-            VALUE "ProductName", "PRODUCT_NAME                                           "
-            VALUE "ProductVersion", "PRODUCT_VERSION                                        "
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x409, 1200
-    END
-END
-
-#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
-
-
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -192,7 +135,15 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 
-
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+IDR_MAINFRAME           ICON                    "resources\\nw.ico"
+/////////////////////////////////////////////////////////////////////////////
+
+//CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "nw.exe.manifest"

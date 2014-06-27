@@ -39,6 +39,7 @@
 #include "content/nw/src/shell_browser_context.h"
 #include "content/nw/src/nw_shell.h"
 #include "content/public/browser/render_process_host.h"
+#include "content/public/browser/render_view_host.h"
 
 using content::WebContents;
 using content::ShellBrowserContext;
@@ -95,10 +96,13 @@ void DispatcherHost::SendEvent(Base* object,
 }
 
 bool DispatcherHost::Send(IPC::Message* message) {
-  return content::WebContentsObserver::Send(message);
+  return render_view_host_->Send(message);
 }
 
-bool DispatcherHost::OnMessageReceived(const IPC::Message& message) {
+bool DispatcherHost::OnMessageReceived(content::RenderViewHost* render_view_host,
+                                       const IPC::Message& message) {
+  if (render_view_host != render_view_host_)
+    return false;
   bool handled = true;
   base::ThreadRestrictions::ScopedAllowIO allow_io;
   base::ThreadRestrictions::ScopedAllowWait allow_wait;
@@ -116,6 +120,7 @@ bool DispatcherHost::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ShellViewHostMsg_GetShellId, OnGetShellId);
     IPC_MESSAGE_HANDLER(ShellViewHostMsg_CreateShell, OnCreateShell);
     IPC_MESSAGE_HANDLER(ShellViewHostMsg_AllocateId, OnAllocateId);
+    IPC_MESSAGE_HANDLER(ShellViewHostMsg_SetForceClose, OnSetForceClose);
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
 
@@ -285,17 +290,14 @@ void DispatcherHost::OnCreateShell(const std::string& url,
   WebContents* web_contents = content::WebContentsImpl::CreateWithOpener(
       create_params,
       static_cast<content::WebContentsImpl*>(base_web_contents));
-  content::Shell* new_shell =
-    content::Shell::Create(base_web_contents,
+
+  content::Shell::Create(base_web_contents,
                            GURL(url),
                            new_manifest.get(),
                            web_contents);
 
   if (new_renderer) {
     browser_context->set_pinning_renderer(true);
-    // since the new-instance shell is always bound
-    // there would be 'Close' event cannot reach dest
-    new_shell->set_force_close(true);
   }
 
   *routing_id = web_contents->GetRoutingID();
@@ -309,6 +311,13 @@ void DispatcherHost::OnCreateShell(const std::string& url,
 
 void DispatcherHost::OnAllocateId(int * ret) {
   *ret = AllocateId();
+}
+
+void DispatcherHost::OnSetForceClose(bool force, int* ret) {
+  content::Shell* shell =
+      content::Shell::FromRenderViewHost(render_view_host());
+  shell->set_force_close(force);
+  *ret = 0;
 }
 
 }  // namespace nwapi

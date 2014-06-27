@@ -24,18 +24,8 @@
 #include "sandbox/win/src/sandbox_types.h"
 
 #if defined(OS_WIN)
-#include "shlobj.h"
-#include "base/command_line.h"
-#include "base/file_util.h"
-#include "base/files/scoped_temp_dir.h"
-#include "third_party/zlib/google/zip.h"
+#include "base/win/win_util.h"
 #include "content/public/app/startup_helper_win.h"
-#include "sandbox/win/src/sandbox_types.h"
-#include "base/path_service.h"
-#include "content/nw/src/nw_version.h"
-#include "content/nw/src/net/util/embed_utils.h"
-#include "base/win/windows_version.h"
-#include "ui/base/win/shell.h"
 #endif
 
 #if defined(OS_MACOSX)
@@ -88,7 +78,12 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, wchar_t*, int) {
   sandbox::SandboxInterfaceInfo sandbox_info = {0};
   content::InitializeSandboxInfo(&sandbox_info);
   content::ShellMainDelegate delegate;
-  return content::ContentMain(instance, &sandbox_info, &delegate);
+  content::ContentMainParams params(&delegate);
+  params.instance = instance;
+  params.sandbox_info = &sandbox_info;
+  int rv = content::ContentMain(params);
+  base::win::SetShouldCrashOnProcessDetach(false);
+  return rv;
 }
 
 #else
@@ -100,7 +95,10 @@ int main(int argc, const char** argv) {
   return ::ContentMain(argc, argv);
 #else
   content::ShellMainDelegate delegate;
-  return content::ContentMain(argc, argv, &delegate);
+  content::ContentMainParams params(&delegate);
+  params.argc = argc;
+  params.argv = argv;
+  return content::ContentMain(params);
 #endif  // OS_MACOSX
 }
 

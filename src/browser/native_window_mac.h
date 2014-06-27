@@ -77,6 +77,7 @@ class NativeWindowCocoa : public NativeWindow {
   virtual bool IsGlass() OVERRIDE;
   virtual void SetMenu(nwapi::Menu* menu) OVERRIDE;
   virtual void SetToolbar(nwapi::Control* ctrl) OVERRIDE;
+  virtual void ClearMenu() OVERRIDE;
   virtual void SetToolbarButtonEnabled(TOOLBAR_BUTTON button,
                                        bool enabled) OVERRIDE;
   virtual void SetToolbarUrlEntry(const std::string& url) OVERRIDE;

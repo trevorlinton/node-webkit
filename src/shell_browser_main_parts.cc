@@ -53,6 +53,13 @@
 #include "content/nw/src/browser/printing/print_dialog_gtk.h"
 #endif
 
+#if defined(USE_AURA)
+#include "ui/aura/env.h"
+#include "ui/gfx/screen.h"
+#include "ui/views/test/desktop_test_views_delegate.h"
+#include "ui/views/widget/desktop_aura/desktop_screen.h"
+#endif  // defined(USE_AURA)
+
 using base::MessageLoop;
 
 namespace {
@@ -115,6 +122,7 @@ void ShellBrowserMainParts::PreMainMessageLoopStart() {
 #endif
 
 void ShellBrowserMainParts::PreMainMessageLoopRun() {
+
 #if !defined(OS_MACOSX)
   Init();
 #endif
@@ -142,14 +150,34 @@ void ShellBrowserMainParts::PostMainMessageLoopRun() {
 
 void ShellBrowserMainParts::PostMainMessageLoopStart() {
 #if defined(TOOLKIT_GTK)
-  printing::PrintingContextGtk::SetCreatePrintDialogFunction(
+  printing::PrintingContextLinux::SetCreatePrintDialogFunction(
       &PrintDialogGtk::CreatePrintDialog);
 #endif
 }
 
 int ShellBrowserMainParts::PreCreateThreads() {
   net::ProxyResolverV8::RememberDefaultIsolate();
+#if defined(USE_AURA)
+  gfx::Screen::SetScreenInstance(gfx::SCREEN_TYPE_NATIVE,
+                                 views::CreateDesktopScreen());
+#endif
   return 0;
+}
+
+void ShellBrowserMainParts::PostDestroyThreads() {
+#if defined(USE_AURA)
+  aura::Env::DeleteInstance();
+  delete views::ViewsDelegate::views_delegate;
+#endif
+}
+
+void ShellBrowserMainParts::ToolkitInitialized() {
+#if defined(USE_AURA)
+  aura::Env::CreateInstance();
+
+  DCHECK(!views::ViewsDelegate::views_delegate);
+  new views::DesktopTestViewsDelegate;
+#endif
 }
 
 void ShellBrowserMainParts::Init() {
@@ -157,6 +185,8 @@ void ShellBrowserMainParts::Init() {
   CommandLine& command_line = *CommandLine::ForCurrentProcess();
 
   browser_context_.reset(new ShellBrowserContext(false, package()));
+  browser_context_->PreMainMessageLoopRun();
+
   off_the_record_browser_context_.reset(
       new ShellBrowserContext(true, package()));
 
@@ -200,11 +230,6 @@ void ShellBrowserMainParts::Init() {
 bool ShellBrowserMainParts::ProcessSingletonNotificationCallback(
     const CommandLine& command_line,
     const base::FilePath& current_directory) {
-  // Unsure why this exists, it seems to bail out of single instance in the process if its self extracting
-  //if (!package_->self_extract()) {
-  //  // We're in runtime mode, create the new app.
-  //  return false;
-  //}
 
   // Don't reuse current instance if 'single-instance' is specified to false.
   bool single_instance;
@@ -214,7 +239,7 @@ bool ShellBrowserMainParts::ProcessSingletonNotificationCallback(
     return false;
 
 #if defined(OS_WIN)
-  std::string cmd = UTF16ToUTF8(command_line.GetCommandLineString());
+  std::string cmd = base::UTF16ToUTF8(command_line.GetCommandLineString());
 #else
   std::string cmd = command_line.GetCommandLineString(); 
 #endif

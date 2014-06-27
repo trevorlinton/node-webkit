@@ -31,6 +31,11 @@
 #include "ui/views/widget/widget_delegate.h"
 #include "ui/views/widget/widget_observer.h"
 
+#include "ui/base/accelerators/accelerator.h"
+#include "ui/base/accelerators/accelerator_manager.h"
+#include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
+#include "ui/events/keycodes/keyboard_codes.h"
+
 namespace views {
 class WebView;
 }
@@ -70,10 +75,7 @@ class NativeWindowWin : public NativeWindow,
   virtual void SetMaximumSize(int width, int height) OVERRIDE;
   virtual void SetResizable(bool resizable) OVERRIDE;
   virtual void SetAlwaysOnTop(bool top) OVERRIDE;
-<<<<<<< HEAD
   virtual void SetBadgeCount(int count = 0) OVERRIDE;
-=======
->>>>>>> upstream/master
   virtual void SetShowInTaskbar(bool show = true) OVERRIDE;
   virtual void SetPosition(const std::string& position) OVERRIDE;
   virtual void SetPosition(const gfx::Point& position) OVERRIDE;
@@ -110,18 +112,16 @@ class NativeWindowWin : public NativeWindow,
   virtual bool CanMaximize() const OVERRIDE;
   virtual views::Widget* GetWidget() OVERRIDE;
   virtual const views::Widget* GetWidget() const OVERRIDE;
-  virtual string16 GetWindowTitle() const OVERRIDE;
+  virtual base::string16 GetWindowTitle() const OVERRIDE;
   virtual void DeleteDelegate() OVERRIDE;
   virtual views::View* GetInitiallyFocusedView() OVERRIDE;
   virtual gfx::ImageSkia GetWindowAppIcon() OVERRIDE;
   virtual gfx::ImageSkia GetWindowIcon() OVERRIDE;
   virtual bool ShouldShowWindowTitle() const OVERRIDE;
-<<<<<<< HEAD
   virtual void Notify(const std::string& title, const std::string& text, const std::string& subtitle, bool sound) OVERRIDE;
   virtual void RenderViewCreated(content::RenderViewHost *render_view_host) OVERRIDE;
-=======
   virtual bool ShouldHandleOnSize()    const OVERRIDE;
->>>>>>> upstream/master
+  views::UnhandledKeyboardEventHandler unhandled_keyboard_event_handler_;
 
   // WidgetFocusChangeListener implementation.
   virtual void OnNativeFocusChange(gfx::NativeView focused_before,
@@ -129,6 +129,13 @@ class NativeWindowWin : public NativeWindow,
 
   // WidgetObserver implementation
   virtual void OnWidgetBoundsChanged(views::Widget* widget, const gfx::Rect& new_bounds) OVERRIDE;
+
+  virtual bool AcceleratorPressed(const ui::Accelerator& accelerator) OVERRIDE{
+    return true;
+  }
+  virtual bool CanHandleAccelerators() const OVERRIDE{
+    return true;
+  }
 
  protected:
   // NativeWindow implementation.
@@ -154,11 +161,15 @@ class NativeWindowWin : public NativeWindow,
   virtual bool ExecuteAppCommand(int command_id) OVERRIDE;
   virtual void SaveWindowPlacement(const gfx::Rect& bounds,
                                    ui::WindowShowState show_state) OVERRIDE;
-
+  virtual bool ShouldDescendIntoChildForEventHandling(
+        gfx::NativeView child,
+        const gfx::Point& location) OVERRIDE;
  private:
   friend class content::Shell;
   void OnViewWasResized();
   bool NativeWindowWin::DWMNegativeMarginInset(bool inset);
+  void InstallEasyResizeTargeterOnContainer();
+
   NativeWindowToolbarWin* toolbar_;
   views::WebView* web_view_;
   views::Widget* window_;
@@ -174,7 +185,6 @@ class NativeWindowWin : public NativeWindow,
   bool is_blur_;
 
   scoped_ptr<SkRegion> draggable_region_;
-
   // The window's menubar.
   nwapi::Menu* menu_;
 
@@ -190,6 +200,9 @@ class NativeWindowWin : public NativeWindow,
 
   int last_width_;
   int last_height_;
+
+  bool super_down_;
+  bool meta_down_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeWindowWin);
 };

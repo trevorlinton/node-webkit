@@ -241,7 +241,7 @@ void FileSelectHelper::OnListDone(int id, int error) {
 
 scoped_ptr<ui::SelectFileDialog::FileTypeInfo>
 FileSelectHelper::GetFileTypesFromAcceptType(
-    const std::vector<string16>& accept_types) {
+                                             const std::vector<base::string16>& accept_types) {
   scoped_ptr<ui::SelectFileDialog::FileTypeInfo> base_file_type(
       new ui::SelectFileDialog::FileTypeInfo());
   if (accept_types.empty())
@@ -258,7 +258,7 @@ FileSelectHelper::GetFileTypesFromAcceptType(
   int valid_type_count = 0;
   int description_id = 0;
   for (size_t i = 0; i < accept_types.size(); ++i) {
-    std::string ascii_type = UTF16ToASCII(accept_types[i]);
+    std::string ascii_type = base::UTF16ToASCII(accept_types[i]);
     if (!IsAcceptTypeValid(ascii_type))
       continue;
 
@@ -398,8 +398,13 @@ void FileSelectHelper::RunFileChooserOnUIThread(
   FilePath default_file_name = params.default_file_name;
   FilePath working_path      = params.initial_path;
 
+#if defined(OS_WIN)
+  gfx::NativeWindow owning_window =
+      (gfx::NativeWindow)::GetAncestor((HWND)render_view_host_->GetView()->GetNativeView(), GA_ROOT);
+#else
   gfx::NativeWindow owning_window =
       platform_util::GetTopLevel(render_view_host_->GetView()->GetNativeView());
+#endif
 
   select_file_dialog_->SelectFile(
       dialog_type_,
@@ -474,7 +479,7 @@ bool FileSelectHelper::IsAcceptTypeValid(const std::string& accept_type) {
   std::string unused;
   if (accept_type.length() <= 1 ||
       StringToLowerASCII(accept_type) != accept_type ||
-      TrimWhitespaceASCII(accept_type, TRIM_ALL, &unused) != TRIM_NONE) {
+      base::TrimWhitespaceASCII(accept_type, base::TRIM_ALL, &unused) != base::TRIM_NONE) {
     return false;
   }
   return true;

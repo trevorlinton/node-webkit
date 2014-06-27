@@ -31,6 +31,7 @@
 #include "content/public/browser/storage_partition.h"
 #include "content/public/common/content_switches.h"
 #include "content/nw/src/browser/shell_download_manager_delegate.h"
+#include "content/nw/src/browser/nw_form_database_service.h"
 #include "content/nw/src/common/shell_switches.h"
 #include "content/nw/src/net/shell_url_request_context_getter.h"
 #include "content/nw/src/nw_package.h"
@@ -92,6 +93,14 @@ ShellBrowserContext::~ShellBrowserContext() {
   }
 }
 
+void ShellBrowserContext::PreMainMessageLoopRun() {
+  form_database_service_.reset(new nw::NwFormDatabaseService(path_));
+}
+
+nw::NwFormDatabaseService* ShellBrowserContext::GetFormDatabaseService() {
+  return form_database_service_.get();
+}
+
 void ShellBrowserContext::InitWhileIOAllowed() {
   CommandLine* cmd_line = CommandLine::ForCurrentProcess();
   if (cmd_line->HasSwitch(switches::kIgnoreCertificateErrors)) {
@@ -127,7 +136,7 @@ void ShellBrowserContext::InitWhileIOAllowed() {
 #endif
 
   if (!base::PathExists(path_))
-    file_util::CreateDirectory(path_);
+    base::CreateDirectory(path_);
 }
 
 FilePath ShellBrowserContext::GetPath() const {
@@ -154,7 +163,9 @@ net::URLRequestContextGetter* ShellBrowserContext::GetRequestContext()  {
 }
 
 net::URLRequestContextGetter* ShellBrowserContext::CreateRequestContext(
-    ProtocolHandlerMap* protocol_handlers) {
+    ProtocolHandlerMap* protocol_handlers,
+    ProtocolHandlerScopedVector protocol_interceptors) {
+
   DCHECK(!url_request_getter_);
   CommandLine* cmd_line = CommandLine::ForCurrentProcess();
   std::string auth_server_whitelist =
@@ -184,6 +195,14 @@ net::URLRequestContextGetter* ShellBrowserContext::CreateRequestContext(
 }
 
 net::URLRequestContextGetter*
+    ShellBrowserContext::CreateRequestContextForStoragePartition(
+        const base::FilePath& partition_path,
+        bool in_memory,
+        ProtocolHandlerMap* protocol_handlers) {
+  return NULL;
+}
+
+net::URLRequestContextGetter*
     ShellBrowserContext::GetRequestContextForRenderProcess(
         int renderer_child_id)  {
   return GetRequestContext();
@@ -207,14 +226,6 @@ net::URLRequestContextGetter*
   return GetRequestContext();
 }
 
-net::URLRequestContextGetter*
-    ShellBrowserContext::CreateRequestContextForStoragePartition(
-        const base::FilePath& partition_path,
-        bool in_memory,
-        ProtocolHandlerMap* protocol_handlers) {
-  return NULL;
-}
-
 ResourceContext* ShellBrowserContext::GetResourceContext()  {
   return resource_context_.get();
 }
@@ -228,20 +239,36 @@ quota::SpecialStoragePolicy* ShellBrowserContext::GetSpecialStoragePolicy() {
   return NULL;
 }
 
-void ShellBrowserContext::RequestMIDISysExPermission(
+void ShellBrowserContext::RequestMidiSysExPermission(
       int render_process_id,
       int render_view_id,
       int bridge_id,
       const GURL& requesting_frame,
-      const MIDISysExPermissionCallback& callback) {
+      bool user_gesture,
+      const MidiSysExPermissionCallback& callback) {
   callback.Run(true);
 }
 
-void ShellBrowserContext::CancelMIDISysExPermissionRequest(
+void ShellBrowserContext::CancelMidiSysExPermissionRequest(
     int render_process_id,
     int render_view_id,
     int bridge_id,
     const GURL& requesting_frame) {
 }
+
+void ShellBrowserContext::RequestProtectedMediaIdentifierPermission(
+    int render_process_id,
+    int render_view_id,
+    int bridge_id,
+    int group_id,
+    const GURL& requesting_frame,
+    const ProtectedMediaIdentifierPermissionCallback& callback) {
+  callback.Run(true);
+}
+
+void ShellBrowserContext::CancelProtectedMediaIdentifierPermissionRequests(
+    int group_id) {
+}
+
 
 }  // namespace content

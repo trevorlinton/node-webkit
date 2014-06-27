@@ -30,6 +30,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_tokenizer.h"
 #include "base/strings/string_util.h"
+#include "base/strings/utf_string_conversions.h"
 #include "base/threading/thread_restrictions.h"
 #include "base/values.h"
 #include "third_party/zlib/google/zip.h"
@@ -46,9 +47,11 @@
 #include "ui/gfx/image/image_skia_rep.h"
 #include "ui/gfx/codec/png_codec.h"
 
+namespace base {
 bool IsSwitch(const CommandLine::StringType& string,
               CommandLine::StringType* switch_string,
               CommandLine::StringType* switch_value);
+}
 
 namespace nw {
 	using namespace std;
@@ -65,7 +68,7 @@ bool MakePathAbsolute(FilePath* file_path) {
   DCHECK(file_path);
 
   FilePath current_directory;
-  if (!file_util::GetCurrentDirectory(&current_directory))
+  if (!base::GetCurrentDirectory(&current_directory))
     return false;
 
   if (file_path->IsAbsolute())
@@ -303,7 +306,7 @@ bool Package::InitFromPath() {
                         manifest_path.AsUTF8Unsafe() :
                     error);
     return false;
-  } else if (!root->IsType(Value::TYPE_DICTIONARY)) {
+  } else if (!root->IsType(base::Value::TYPE_DICTIONARY)) {
     ReportError("Invalid package.json",
                 "package.json's content should be a object type.");
     return false;
@@ -384,7 +387,7 @@ bool Package::ExtractPath() {
   // Read symbolic link.
 #if defined(OS_POSIX)
   FilePath target;
-  if (file_util::ReadSymbolicLink(path_, &target))
+  if (base::ReadSymbolicLink(path_, &target))
     path_ = target;
 #endif
 
@@ -406,9 +409,9 @@ bool Package::ExtractPackage(const FilePath& zip_file, FilePath* where) {
 
   if (!scoped_temp_dir_.IsValid()) {
 #if defined(OS_WIN)
-    if (!file_util::CreateNewTempDirectory(L"nw", where)) {
+    if (!base::CreateNewTempDirectory(L"nw", where)) {
 #else
-    if (!file_util::CreateNewTempDirectory("nw", where)) {
+    if (!base::CreateNewTempDirectory("nw", where)) {
 #endif
       ReportError("Cannot extract package",
                   "Unable to create temporary directory.");
@@ -439,7 +442,7 @@ void Package::ReadChromiumArgs() {
   tokenizer.set_quote_chars("\'");
   while (tokenizer.GetNext()) {
     std::string token = tokenizer.token();
-    RemoveChars(token, "\'", &token);
+    base::RemoveChars(token, "\'", &token);
     chromium_args.push_back(token);
   }
 
@@ -451,12 +454,12 @@ void Package::ReadChromiumArgs() {
     // Note:: On Windows, the |CommandLine::StringType| will be |std::wstring|,
     // so the chromium_args[i] is not compatible. We convert the wstring to
     // string here is safe beacuse we use ASCII only.
-    if (!IsSwitch(ASCIIToWide(chromium_args[i]), &key, &value))
+    if (!base::IsSwitch(ASCIIToWide(chromium_args[i]), &key, &value))
       continue;
-    command_line->AppendSwitchASCII(WideToASCII(key),
-                                    WideToASCII(value));
+    command_line->AppendSwitchASCII(base::UTF16ToASCII(key),
+                                    base::UTF16ToASCII(value));
 #else
-    if (!IsSwitch(chromium_args[i], &key, &value))
+    if (!base::IsSwitch(chromium_args[i], &key, &value))
       continue;
     command_line->AppendSwitchASCII(key, value);
 #endif

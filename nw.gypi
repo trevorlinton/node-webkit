@@ -10,6 +10,7 @@
        'linux_dump_symbols%': 1,
       }],
     ],
+    'mac_strip_release': 1,
   },
   'target_defaults': {
     'configurations': {
@@ -37,7 +38,9 @@
         '<(DEPTH)/base/base.gyp:base',
         '<(DEPTH)/base/third_party/dynamic_annotations/dynamic_annotations.gyp:dynamic_annotations',
         '<(DEPTH)/components/components.gyp:autofill_content_renderer',
-        '<(DEPTH)/components/components.gyp:browser_context_keyed_service',
+        '<(DEPTH)/components/components.gyp:keyed_service_content',
+        '<(DEPTH)/components/components_resources.gyp:components_resources',
+        '<(DEPTH)/components/components.gyp:autofill_content_browser',
         '<(DEPTH)/content/content.gyp:content_app_browser',
         '<(DEPTH)/content/content.gyp:content_browser',
         '<(DEPTH)/content/content.gyp:content_common',
@@ -55,11 +58,10 @@
         '<(DEPTH)/printing/printing.gyp:printing',
         '<(DEPTH)/skia/skia.gyp:skia',
         '<(DEPTH)/third_party/node/node.gyp:node',
-        '<(DEPTH)/ui/ui.gyp:ui',
-        '<(DEPTH)/ui/ui.gyp:ui_resources',
+        '<(DEPTH)/ui/base/ui_base.gyp:ui_base',
+        '<(DEPTH)/ui/resources/ui_resources.gyp:ui_resources',
         '<(DEPTH)/url/url.gyp:url_lib',
         '<(DEPTH)/v8/tools/gyp/v8.gyp:v8',
-        '<(DEPTH)/webkit/glue/webkit_glue.gyp:glue',
         '<(DEPTH)/third_party/zlib/zlib.gyp:minizip',
         '<(DEPTH)/third_party/WebKit/public/blink.gyp:blink',
         'nw_resources',
@@ -71,6 +73,7 @@
         '<(DEPTH)/breakpad/src',
         '<(SHARED_INTERMEDIATE_DIR)/blink',
         '<(SHARED_INTERMEDIATE_DIR)/blink/bindings',
+        '<(SHARED_INTERMEDIATE_DIR)/chrome',
       ],
       'cflags_cc': [
         '-Wno-error=c++0x-compat',
@@ -103,7 +106,6 @@
         #'<(DEPTH)/chrome/common/child_process_logging_posix.cc',
         #'<(DEPTH)/chrome/common/child_process_logging_win.cc',
         '<(DEPTH)/chrome/common/crash_keys.cc',
-        '<(DEPTH)/chrome/common/dump_without_crashing.cc',
         '<(DEPTH)/chrome/common/env_vars.cc',
         '<(DEPTH)/chrome/browser/chrome_process_finder_win.cc',
         '<(DEPTH)/chrome/browser/chrome_process_finder_win.h',
@@ -167,6 +169,7 @@
         'src/api/dispatcher_bindings.h',
         'src/api/ti_bindings.cc',
         'src/api/ti_bindings.h',
+        'src/api/dispatcher_bindings_mac.mm',
         'src/api/dispatcher_host.cc',
         'src/api/dispatcher_host.h',
         'src/api/window_bindings.cc',
@@ -204,6 +207,16 @@
         'src/api/window/window.h',
         'src/browser/app_controller_mac.h',
         'src/browser/app_controller_mac.mm',
+        'src/browser/autofill_popup_view_gtk.cc',
+        'src/browser/autofill_popup_view_gtk.h',
+        'src/browser/autofill_popup_view_cocoa.h',
+        'src/browser/autofill_popup_view_cocoa.mm',
+        'src/browser/autofill_popup_view_bridge.h',
+        'src/browser/autofill_popup_view_bridge.mm',
+        'src/browser/autofill_popup_controller_impl.cc',
+        'src/browser/autofill_popup_controller_impl.h',
+        'src/browser/tab_autofill_manager_delegate.cc',
+        'src/browser/tab_autofill_manager_delegate.h',
         'src/browser/capture_page_helper.h',
         'src/browser/capture_page_helper.cc',
         'src/browser/color_chooser_gtk.cc',
@@ -226,6 +239,10 @@
         'src/browser/native_window_win.h',
         'src/browser/net_disk_cache_remover.cc',
         'src/browser/net_disk_cache_remover.h',
+        'src/browser/nw_form_database_service.cc',
+        'src/browser/nw_form_database_service.h',
+        'src/browser/popup_controller_common.cc',
+        'src/browser/popup_controller_common.h',
         'src/browser/printing/print_dialog_gtk.cc',
         'src/browser/printing/print_dialog_gtk.h',
         'src/browser/printing/print_job.cc',
@@ -260,7 +277,7 @@
         'src/browser/shell_javascript_dialog.h',
         'src/browser/shell_login_dialog_gtk.cc',
         'src/browser/shell_login_dialog_mac.mm',
-        'src/browser/shell_login_dialog_win.cc',
+        #FIXME 'src/browser/shell_login_dialog_win.cc',
         'src/browser/shell_login_dialog.cc',
         'src/browser/shell_login_dialog.h',
         'src/browser/shell_resource_dispatcher_host_delegate.cc',
@@ -314,8 +331,6 @@
         'src/nw_version.h',
         'src/paths_mac.h',
         'src/paths_mac.mm',
-        'src/renderer/autofill_agent.cc',
-        'src/renderer/autofill_agent.h',
         'src/renderer/common/render_messages.cc',
         'src/renderer/common/render_messages.h',
         'src/renderer/prerenderer/prerenderer_client.cc',
@@ -367,6 +382,13 @@
             '<(DEPTH)/base/allocator/allocator.gyp:allocator',
           ],
         }],
+        ['use_aura==1', {
+          'dependencies': [
+            '<(DEPTH)/ui/views/views.gyp:views',
+            '<(DEPTH)/ui/views/views.gyp:views_test_support',
+            '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
+          ],
+        }],
         ['(os_posix==1 and OS != "mac" and linux_use_tcmalloc==1)', {
           'dependencies': [
             # This is needed by content/app/content_main_runner.cc
@@ -374,6 +396,12 @@
           ],
         }],
         ['OS=="win"', {
+          'sources': [
+            'src/browser/autofill_popup_base_view.cc',
+            'src/browser/autofill_popup_base_view.h',
+            'src/browser/autofill_popup_view_views.cc',
+            'src/browser/autofill_popup_view_views.h',
+          ],
           'dependencies': [
             '<(DEPTH)/breakpad/breakpad.gyp:breakpad_handler',
             '<(DEPTH)/breakpad/breakpad.gyp:breakpad_sender',
@@ -400,6 +428,11 @@
             '<(DEPTH)/breakpad/breakpad.gyp:breakpad',
             '<(DEPTH)/components/components.gyp:breakpad_component',
           ],
+          'link_settings': {
+            'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/AddressBook.framework',
+            ],
+          },
         }],
         ['toolkit_uses_gtk == 1', {
           'dependencies': [
@@ -418,7 +451,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/webkit',
           ],
           'dependencies': [
-            '<(DEPTH)/ui/ui.gyp:ui_resources',
+            '<(DEPTH)/ui/resources/ui_resources.gyp:ui_resources',
             '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
             '<(DEPTH)/ui/views/views.gyp:views',
             '<(DEPTH)/webkit/webkit_resources.gyp:webkit_resources',
@@ -457,7 +490,7 @@
           ],
         },
         {
-          'destination': '<(PRODUCT_DIR)/locale',
+          'destination': '<(PRODUCT_DIR)/locales',
           'files': [
             '<(SHARED_INTERMEDIATE_DIR)/content/en-US.pak',
             '<(SHARED_INTERMEDIATE_DIR)/content/am.pak',
@@ -573,7 +606,7 @@
       'type': 'none',
       'dependencies': [
         '<(DEPTH)/content/browser/devtools/devtools_resources.gyp:devtools_resources',
-        '<(DEPTH)/ui/ui.gyp:ui_resources',
+        '<(DEPTH)/ui/resources/ui_resources.gyp:ui_resources',
         'nw_resources',
       ],
       'variables': {
@@ -609,24 +642,113 @@
       ],
     },
     {
-      'target_name': 'strip',
+      'target_name': 'nw_strip_symbol',
       'type': 'none',
-      'actions': [
-        {
-          'action_name': 'strip_nw_binaries',
-          'inputs': [
-            '<(PRODUCT_DIR)/nw',
+      'conditions': [
+        ['OS=="mac"', {
+          'variables': {
+          },
+          'actions': [
+            {
+              'action_name': 'dump_symbol',
+              'inputs': [
+                '<(DEPTH)/content/nw/tools/dump_mac_syms',
+                '<(PRODUCT_DIR)/dump_syms',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/node-webkit.breakpad.tar.bz2',
+              ],
+              'action': ['<(DEPTH)/content/nw/tools/dump_mac_syms',
+                         ],
+              'message': 'Dumping breakpad symbols to <(_outputs)',
+              'process_outputs_as_sources': 1,
+            },
           ],
-          'outputs': [
-            '<(PRODUCT_DIR)/strip_nw.stamp',
+          'dependencies': [
+            'nw',
+            '../breakpad/breakpad.gyp:dump_syms',
           ],
-          'action': ['strip',
-                     '<@(_inputs)'],
-          'message': 'Stripping release executable',
-        },
+        }],
+       ['OS=="win"', {
+          'actions': [
+            {
+              'action_name': 'dump_symbol_and_strip',
+              'inputs': [
+                '<(DEPTH)/content/nw/tools/dump_win_syms.py',
+                '<(PRODUCT_DIR)/nw.exe',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/nw.sym.7z',
+              ],
+              'action': ['python',
+                         '<(DEPTH)/content/nw/tools/dump_win_syms.py',
+                         '<(PRODUCT_DIR)/nw.exe',
+                         '<(PRODUCT_DIR)/nw.sym',
+                         ],
+              'message': 'Dumping breakpad symbols to <(_outputs)',
+              'process_outputs_as_sources': 1,
+            },
+          ],
+          'dependencies': [
+            'nw',
+          ],
+        }],
+        ['OS=="linux"', {
+          'variables': {
+            'linux_strip_binary': 1,
+          },
+          'actions': [
+            {
+              'action_name': 'dump_symbol_and_strip',
+              'inputs': [
+                '<(DEPTH)/content/nw/tools/dump_app_syms',
+                '<(PRODUCT_DIR)/dump_syms',
+                '<(PRODUCT_DIR)/nw',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/nw.breakpad.<(target_arch)',
+              ],
+              'action': ['<(DEPTH)/content/nw/tools/dump_app_syms',
+                         '<(PRODUCT_DIR)/dump_syms',
+                         '<(linux_strip_binary)',
+                         '<(PRODUCT_DIR)/nw',
+                         '<@(_outputs)'],
+              'message': 'Dumping breakpad symbols to <(_outputs)',
+              'process_outputs_as_sources': 1,
+            },
+          ],
+          'dependencies': [
+            'nw',
+            '../breakpad/breakpad.gyp:dump_syms',
+          ],
+        }],
       ],
-      'dependencies': [
-        'nw',
+    },
+    {
+      'target_name': 'strip_binaries',
+      'type': 'none',
+      'conditions': [
+        ['OS=="linux"', {
+          'actions': [
+            {
+              'action_name': 'strip_nw_binaries',
+              'inputs': [
+#                '<(PRODUCT_DIR)/nwsnapshot',
+                '<(PRODUCT_DIR)/chromedriver',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/strip_binaries.stamp',
+              ],
+              'action': ['strip',
+                         '<@(_inputs)'],
+              'message': 'Stripping release binaries',
+            },
+          ],
+          'dependencies': [
+#             '<(DEPTH)/v8/tools/gyp/v8.gyp:nwsnapshot',
+             '<(DEPTH)/chrome/chrome.gyp:chromedriver',
+          ],
+        }],
       ],
     },
     {
@@ -649,11 +771,12 @@
       ],
       'dependencies': [
         '<(DEPTH)/chrome/chrome.gyp:chromedriver',
+        'nw_strip_symbol',
       ],
       'conditions': [
         ['OS == "linux"', {
           'dependencies': [
-            'strip',
+            'strip_binaries',
           ],
         }],
       ],
@@ -700,7 +823,7 @@
           ],
           'SubSystem': '2',  # Set /SUBSYSTEM:WINDOWS
         },
-	'VCManifestTool': {
+      'VCManifestTool': {
           'AdditionalManifestFiles': [
             '$(ProjectDir)\\nw\\src\\nw.exe.manifest',
           ],
@@ -727,6 +850,10 @@
             },
           },
         }],  # OS=="win"
+        ['OS == "linux"', {
+          'ldflags': [
+            '-Wl,--whole-archive', 'obj/third_party/node/libnode.a', '-Wl,--no-whole-archive' ],
+        }],
         ['OS == "win" or toolkit_uses_gtk == 1', {
           'dependencies': [
             '<(DEPTH)/sandbox/sandbox.gyp:sandbox',
@@ -820,60 +947,61 @@
           'mac_bundle': 1,
           'mac_bundle_resources': [
             'src/mac/English.lproj/HttpAuth.xib',
+            '<(PRODUCT_DIR)/icudtl.dat',
             '<(PRODUCT_DIR)/nw.pak',
-            '<(PRODUCT_DIR)/locale/en-US.pak',
-            '<(PRODUCT_DIR)/locale/am.pak',
-            '<(PRODUCT_DIR)/locale/ar.pak',
-            '<(PRODUCT_DIR)/locale/bg.pak',
-            '<(PRODUCT_DIR)/locale/bn.pak',
-            '<(PRODUCT_DIR)/locale/ca.pak',
-            '<(PRODUCT_DIR)/locale/cs.pak',
-            '<(PRODUCT_DIR)/locale/da.pak',
-            '<(PRODUCT_DIR)/locale/de.pak',
-            '<(PRODUCT_DIR)/locale/el.pak',
-            '<(PRODUCT_DIR)/locale/en-GB.pak',
-            '<(PRODUCT_DIR)/locale/es.pak',
-            '<(PRODUCT_DIR)/locale/es-419.pak',
-            '<(PRODUCT_DIR)/locale/et.pak',
-            '<(PRODUCT_DIR)/locale/fa.pak',
-            '<(PRODUCT_DIR)/locale/fi.pak',
-            '<(PRODUCT_DIR)/locale/fil.pak',
-            '<(PRODUCT_DIR)/locale/fr.pak',
-            '<(PRODUCT_DIR)/locale/gu.pak',
-            '<(PRODUCT_DIR)/locale/hi.pak',
-            '<(PRODUCT_DIR)/locale/hr.pak',
-            '<(PRODUCT_DIR)/locale/hu.pak',
-            '<(PRODUCT_DIR)/locale/id.pak',
-            '<(PRODUCT_DIR)/locale/it.pak',
-            '<(PRODUCT_DIR)/locale/iw.pak',
-            '<(PRODUCT_DIR)/locale/ja.pak',
-            '<(PRODUCT_DIR)/locale/kn.pak',
-            '<(PRODUCT_DIR)/locale/ko.pak',
-            '<(PRODUCT_DIR)/locale/lt.pak',
-            '<(PRODUCT_DIR)/locale/lv.pak',
-            '<(PRODUCT_DIR)/locale/ml.pak',
-            '<(PRODUCT_DIR)/locale/mr.pak',
-            '<(PRODUCT_DIR)/locale/ms.pak',
-            '<(PRODUCT_DIR)/locale/nl.pak',
-            '<(PRODUCT_DIR)/locale/no.pak',
-            '<(PRODUCT_DIR)/locale/pl.pak',
-            '<(PRODUCT_DIR)/locale/pt-BR.pak',
-            '<(PRODUCT_DIR)/locale/pt-PT.pak',
-            '<(PRODUCT_DIR)/locale/ro.pak',
-            '<(PRODUCT_DIR)/locale/ru.pak',
-            '<(PRODUCT_DIR)/locale/sk.pak',
-            '<(PRODUCT_DIR)/locale/sl.pak',
-            '<(PRODUCT_DIR)/locale/sr.pak',
-            '<(PRODUCT_DIR)/locale/sv.pak',
-            '<(PRODUCT_DIR)/locale/sw.pak',
-            '<(PRODUCT_DIR)/locale/ta.pak',
-            '<(PRODUCT_DIR)/locale/te.pak',
-            '<(PRODUCT_DIR)/locale/th.pak',
-            '<(PRODUCT_DIR)/locale/tr.pak',
-            '<(PRODUCT_DIR)/locale/uk.pak',
-            '<(PRODUCT_DIR)/locale/vi.pak',
-            '<(PRODUCT_DIR)/locale/zh-CN.pak',
-            '<(PRODUCT_DIR)/locale/zh-TW.pak',
+            '<(PRODUCT_DIR)/locales/en-US.pak',
+            '<(PRODUCT_DIR)/locales/am.pak',
+            '<(PRODUCT_DIR)/locales/ar.pak',
+            '<(PRODUCT_DIR)/locales/bg.pak',
+            '<(PRODUCT_DIR)/locales/bn.pak',
+            '<(PRODUCT_DIR)/locales/ca.pak',
+            '<(PRODUCT_DIR)/locales/cs.pak',
+            '<(PRODUCT_DIR)/locales/da.pak',
+            '<(PRODUCT_DIR)/locales/de.pak',
+            '<(PRODUCT_DIR)/locales/el.pak',
+            '<(PRODUCT_DIR)/locales/en-GB.pak',
+            '<(PRODUCT_DIR)/locales/es.pak',
+            '<(PRODUCT_DIR)/locales/es-419.pak',
+            '<(PRODUCT_DIR)/locales/et.pak',
+            '<(PRODUCT_DIR)/locales/fa.pak',
+            '<(PRODUCT_DIR)/locales/fi.pak',
+            '<(PRODUCT_DIR)/locales/fil.pak',
+            '<(PRODUCT_DIR)/locales/fr.pak',
+            '<(PRODUCT_DIR)/locales/gu.pak',
+            '<(PRODUCT_DIR)/locales/hi.pak',
+            '<(PRODUCT_DIR)/locales/hr.pak',
+            '<(PRODUCT_DIR)/locales/hu.pak',
+            '<(PRODUCT_DIR)/locales/id.pak',
+            '<(PRODUCT_DIR)/locales/it.pak',
+            '<(PRODUCT_DIR)/locales/iw.pak',
+            '<(PRODUCT_DIR)/locales/ja.pak',
+            '<(PRODUCT_DIR)/locales/kn.pak',
+            '<(PRODUCT_DIR)/locales/ko.pak',
+            '<(PRODUCT_DIR)/locales/lt.pak',
+            '<(PRODUCT_DIR)/locales/lv.pak',
+            '<(PRODUCT_DIR)/locales/ml.pak',
+            '<(PRODUCT_DIR)/locales/mr.pak',
+            '<(PRODUCT_DIR)/locales/ms.pak',
+            '<(PRODUCT_DIR)/locales/nl.pak',
+            '<(PRODUCT_DIR)/locales/no.pak',
+            '<(PRODUCT_DIR)/locales/pl.pak',
+            '<(PRODUCT_DIR)/locales/pt-BR.pak',
+            '<(PRODUCT_DIR)/locales/pt-PT.pak',
+            '<(PRODUCT_DIR)/locales/ro.pak',
+            '<(PRODUCT_DIR)/locales/ru.pak',
+            '<(PRODUCT_DIR)/locales/sk.pak',
+            '<(PRODUCT_DIR)/locales/sl.pak',
+            '<(PRODUCT_DIR)/locales/sr.pak',
+            '<(PRODUCT_DIR)/locales/sv.pak',
+            '<(PRODUCT_DIR)/locales/sw.pak',
+            '<(PRODUCT_DIR)/locales/ta.pak',
+            '<(PRODUCT_DIR)/locales/te.pak',
+            '<(PRODUCT_DIR)/locales/th.pak',
+            '<(PRODUCT_DIR)/locales/tr.pak',
+            '<(PRODUCT_DIR)/locales/uk.pak',
+            '<(PRODUCT_DIR)/locales/vi.pak',
+            '<(PRODUCT_DIR)/locales/zh-CN.pak',
+            '<(PRODUCT_DIR)/locales/zh-TW.pak',
           ],
           'dependencies': [
             'nw_lib',
@@ -885,6 +1013,7 @@
             'src/shell_content_main.cc',
             'src/shell_content_main.h',
           ],
+          'xcode_settings': { 'OTHER_LDFLAGS': [ '-Wl,-force_load,libnode.a' ], },
           'copies': [
             {
               # Copy FFmpeg binaries for audio/video support.
@@ -972,40 +1101,6 @@
         },  # target nw_helper_app
       ],
     }],  # OS=="mac"
-    ['OS=="linux"',
-      { 'targets': [
-        {
-          'target_name': 'nw_symbols',
-          'type': 'none',
-          'conditions': [
-            ['linux_dump_symbols==1', {
-              'actions': [
-                {
-                  'action_name': 'dump_symbols',
-                  'inputs': [
-                    '<(DEPTH)/build/linux/dump_app_syms',
-                    '<(PRODUCT_DIR)/dump_syms',
-                    '<(PRODUCT_DIR)/nw',
-                  ],
-                  'outputs': [
-                    '<(PRODUCT_DIR)/nw.breakpad.<(target_arch)',
-                  ],
-                  'action': ['<(DEPTH)/build/linux/dump_app_syms',
-                             '<(PRODUCT_DIR)/dump_syms',
-                             '<(linux_strip_binary)',
-                             '<(PRODUCT_DIR)/nw',
-                             '<@(_outputs)'],
-                  'message': 'Dumping breakpad symbols to <(_outputs)',
-                  'process_outputs_as_sources': 1,
-                },
-              ],
-              'dependencies': [
-                'nw',
-                '../breakpad/breakpad.gyp:dump_syms',
-              ],
-            }],
-          ],
-        }],
-    }], # OS=="linux"
   ] # conditions
 }
+

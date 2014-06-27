@@ -136,8 +136,8 @@ void PrintViewManager::RenderProcessGone(base::TerminationStatus status) {
   }
 }
 
-string16 PrintViewManager::RenderSourceName() {
-  string16 name(web_contents()->GetTitle());
+base::string16 PrintViewManager::RenderSourceName() {
+  base::string16 name(web_contents()->GetTitle());
   if (name.empty())
     name = l10n_util::GetStringUTF16(IDS_DEFAULT_PRINT_DOCUMENT_TITLE);
   return name;
@@ -201,7 +201,7 @@ void PrintViewManager::OnDidPrintPage(
   const CommandLine* cmdline = CommandLine::ForCurrentProcess();
   int raster_size = std::min(params.page_size.GetArea(),
                              kMaxRasterSizeInPixels);
-  if (big_emf || (cmdline && cmdline->HasSwitch(switches::kPrintRaster))) {
+  if (big_emf) {
     scoped_ptr<NativeMetafile> raster_metafile(
         metafile->RasterizeMetafile(raster_size));
     if (raster_metafile.get()) {
