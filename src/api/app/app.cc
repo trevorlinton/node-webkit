@@ -438,9 +438,9 @@ void App::Call(Shell* shell,
        embed_util::Utility::GetFileData(&info))
     {
 #ifdef OS_WIN
-      file_util::WriteFile(base::FilePath(std::wstring(out.begin(),out.end())),(char *)info.data,info.data_size);
+      base::WriteFile(base::FilePath(std::wstring(out.begin(),out.end())),(char *)info.data,info.data_size);
 #else
-      file_util::WriteFile(base::FilePath(out),(char *)info.data,info.data_size);
+      base::WriteFile(base::FilePath(out),(char *)info.data,info.data_size);
 #endif
     }
     return;

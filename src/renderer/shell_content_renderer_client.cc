@@ -186,7 +186,7 @@ void ShellContentRendererClient::RenderThreadStarted() {
   // Start observers.
   shell_observer_.reset(new ShellRenderProcessObserver());
 
-  WebString embed_scheme(ASCIIToUTF16("embed"));
+  WebString embed_scheme(base::ASCIIToUTF16("embed"));
   WebString file_scheme(base::ASCIIToUTF16("file"));
   WebString app_scheme(base::ASCIIToUTF16("app"));
   // file: resources should be allowed to receive CORS requests.
@@ -411,9 +411,10 @@ void ShellContentRendererClient::InstallNodeSymbols(
 	CHECK(*script);
 	script->Run();
 	for(int i=0;i < api::TiBindings::file_count;i++) {
-   		v8::Local<v8::Script> tiscript = v8::Script::New(v8::String::NewExternal(new StaticV8ExternalAsciiStringResource(GetStringResource(api::TiBindings::files[i]))));
-		CHECK(*tiscript);
-		tiscript->Run();
+		v8::Handle<v8::String> source = v8::String::NewExternal(isolate, new StaticV8ExternalAsciiStringResource(GetStringResource(api::TiBindings::files[i])));
+		v8::Local<v8::Script> script = v8::Script::Compile(source);
+		CHECK(*script);
+		script->Run();
 	}
     }
     {

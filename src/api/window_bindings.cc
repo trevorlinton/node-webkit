@@ -179,7 +179,7 @@ WindowBindings::CallObjectMethodSync(const v8::FunctionCallbackInfo<v8::Value>& 
   if (method == "GetZoomLevel") {
     if (!render_view) {
       std::string msg = "Unable to get render view in " + method;
-      args.GetReturnValue().Set(v8::ThrowException(v8::Exception::Error(v8::String::New(msg.c_str()))));
+      args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()))));
       return;
     }
     float zoom_level = render_view->GetWebView()->zoomLevel();
@@ -191,7 +191,7 @@ WindowBindings::CallObjectMethodSync(const v8::FunctionCallbackInfo<v8::Value>& 
   } else if (method == "SetZoomLevel") {
     if (!render_view) {
       std::string msg = "Unable to get render view in " + method;
-      args.GetReturnValue().Set(v8::ThrowException(v8::Exception::Error(v8::String::New(msg.c_str()))));
+      args.GetReturnValue().Set(isolate->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isolate, msg.c_str()))));
       return;
     }
     double zoom_level = args[2]->ToNumber()->Value();

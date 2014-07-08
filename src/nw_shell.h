@@ -115,7 +115,7 @@ class Shell : public WebContentsDelegate,
   // Decide whether we should close the window.
   bool ShouldCloseWindow(bool quit = false);
 
-  virtual GURL OverrideDOMStorageOrigin(const GURL& origin) OVERRIDE;
+  virtual GURL OverrideDOMStorageOrigin(const GURL& origin);
 
   // Print critical error.
   void PrintCriticalError(const std::string& title,

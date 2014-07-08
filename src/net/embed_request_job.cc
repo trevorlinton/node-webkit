@@ -45,6 +45,8 @@
 #include "net/url_request/url_request_error_job.h"
 #include "net/url_request/url_request_file_dir_job.h"
 #include "net/url_request/url_request_job.h"
+#include "net/filter/filter.h"
+
 using namespace base;
 namespace nw {
   using namespace net;

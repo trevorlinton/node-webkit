@@ -64,6 +64,7 @@
         '<(DEPTH)/v8/tools/gyp/v8.gyp:v8',
         '<(DEPTH)/third_party/zlib/zlib.gyp:minizip',
         '<(DEPTH)/third_party/WebKit/public/blink.gyp:blink',
+        '<(DEPTH)/third_party/libffi/ffi.gyp:ffi',
         'nw_resources',
       ],
       'include_dirs': [

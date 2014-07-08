@@ -272,7 +272,7 @@ bool Package::InitFromPath() {
 
 	FilePath manifest_path;
 	std::string error;
-	Value *root;
+	base::Value *root;
 	embed_util::FileMetaInfo pe;
 
 	if(embed_util::Utility::GetFileInfo("package.json", &pe)
@@ -313,7 +313,7 @@ bool Package::InitFromPath() {
   }
 
   // Save result in global
-  root_.reset(static_cast<DictionaryValue*>(root));
+  root_.reset(static_cast<base::DictionaryValue*>(root));
 
   // Save origin package info
   // Since we will change some value in root_,
