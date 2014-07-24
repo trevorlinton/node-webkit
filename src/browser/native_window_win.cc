@@ -51,6 +51,7 @@
 #include "ui/views/widget/widget.h"
 #include "ui/views/widget/native_widget_win.h"
 #include "ui/views/window/native_frame_view.h"
+#include "ui/base/win/shell.h"
 #include "content/browser/gpu/gpu_data_manager_impl.h"
 
 #include <time.h>
@@ -578,7 +579,11 @@ void NativeWindowWin::SetShowInTaskbar(bool show) {
   if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
     // Change the owner of native window. Only needed on Windows XP.
     ::SetWindowLong(window_->GetNativeView(),
+#if defined(_M_X64) || defined(__amd64__)
+                    GWLP_HWNDPARENT,
+#else
                     GWL_HWNDPARENT,
+#endif
                     (LONG)ui::GetHiddenWindow());
   }
 
@@ -617,7 +622,7 @@ void NativeWindowWin::SetAlwaysOnTop(bool top) {
 void NativeWindowWin::SetBadgeCount(int count) {
 
 }
-
+/*
 void NativeWindowWin::SetShowInTaskbar(bool show) {
   if(show) {
     SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE)|WS_EX_TOOLWINDOW);
@@ -626,7 +631,7 @@ void NativeWindowWin::SetShowInTaskbar(bool show) {
     SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE) & ~WS_EX_TOOLWINDOW);
     SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, GetWindowLong(window_->GetNativeWindow(),GWL_STYLE) | WS_CAPTION);
   }
-   /*if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
+   if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
     if (hidden_owner_window_.get() == NULL) {
       hidden_owner_window_.reset(new HiddenOwnerWindow());
     }
@@ -658,8 +663,8 @@ void NativeWindowWin::SetShowInTaskbar(bool show) {
   if (FAILED(result)) {
     LOG(ERROR) << "Failed to change the show in taskbar attribute";
     return;
-  }*/
-}
+  }
+}*/
 
 void NativeWindowWin::OnWidgetBoundsChanged(views::Widget* widget, const gfx::Rect& new_bounds)  {
   int w = new_bounds.width();
