@@ -6,7 +6,7 @@
 #include "net/base/file_stream_whence.h"
 #include "base/files/file_path.h"
 #include "third_party/node/deps/uv/include/uv.h"
-#include "net/base/gzip_header.h"
+#include "net/filter/gzip_header.h"
 #include "third_party/zlib/zlib.h"
 
 #ifndef PATH_MAX

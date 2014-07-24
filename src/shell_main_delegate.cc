@@ -70,7 +70,7 @@ using namespace file_util;
 #define IPC_LOG_TABLE_ADD_ENTRY(msg_id, logger) \
     content::RegisterIPCLogger(msg_id, logger)
 #include "content/nw/src/common/common_message_generator.h"
-#include "components/autofill/core/common/autofill_messages.h"
+#include "components/autofill/content/common/autofill_messages.h"
 #endif
 
 namespace {
@@ -129,8 +129,17 @@ bool ShellMainDelegate::BasicStartupComplete(int* exit_code) {
   logging::LogEventProvider::Initialize(kContentShellProviderName);
 #endif
 
+#if defined(OS_MACOSX)
+  // Needs to happen before InitializeResourceBundle() and before
+  // WebKitTestPlatformInitialize() are called.
+  OverrideFrameworkBundlePath();
+  OverrideChildProcessPath();
+  // FIXME: EnsureCorrectResolutionSettings();
+  l10n_util::OverrideLocaleWithUserDefault();
+#endif  // OS_MACOSX
+
   InitLogging();
-  net::CookieMonster::EnableFileScheme();
+  // FIXME: net::CookieMonster::EnableFileScheme();
 
   SetContentClient(&content_client_);
   return false;
@@ -144,11 +153,6 @@ void ShellMainDelegate::PreSandboxStartup() {
     pref_locale = command_line->GetSwitchValueASCII(switches::kLang);
   }
 
-#if defined(OS_MACOSX)
-  OverrideFrameworkBundlePath();
-  OverrideChildProcessPath();
-  l10n_util::OverrideLocaleWithUserDefault();
-#endif  // OS_MACOSX
   InitializeResourceBundle(pref_locale);
 
   std::string process_type =

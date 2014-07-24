@@ -86,8 +86,8 @@ INT_PTR CALLBACK ShellLoginDialog::DialogProc(HWND dialog,
           GetWindowLongPtr(dialog, DWL_USER));
 #endif
       if (LOWORD(wparam) == IDOK) {
-        string16 username;
-        string16 password;
+        base::string16 username;
+        base::string16 password;
         size_t length =
             GetWindowTextLength(GetDlgItem(dialog, IDC_USERNAMEEDIT)) + 1;
         GetDlgItemText(dialog, IDC_USERNAMEEDIT,
@@ -112,7 +112,7 @@ INT_PTR CALLBACK ShellLoginDialog::DialogProc(HWND dialog,
   return 0;
 }
 
-void ShellLoginDialog::PlatformCreateDialog(const string16& message) {
+void ShellLoginDialog::PlatformCreateDialog(const base::string16& message) {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
 
   WebContents* web_contents = NULL;

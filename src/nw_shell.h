@@ -115,7 +115,7 @@ class Shell : public WebContentsDelegate,
   // Decide whether we should close the window.
   bool ShouldCloseWindow(bool quit = false);
 
-  virtual GURL OverrideDOMStorageOrigin(const GURL& origin) OVERRIDE;
+  virtual GURL OverrideDOMStorageOrigin(const GURL& origin);
 
   // Print critical error.
   void PrintCriticalError(const std::string& title,
@@ -153,22 +153,25 @@ class Shell : public WebContentsDelegate,
   virtual void RenderViewCreated(RenderViewHost* render_view_host) OVERRIDE;
   virtual WebContents* OpenURLFromTab(WebContents* source,
                                       const OpenURLParams& params) OVERRIDE;
-  virtual void LoadingStateChanged(WebContents* source) OVERRIDE;
+  virtual void LoadingStateChanged(WebContents* source,
+                                   bool to_different_document) OVERRIDE;
   virtual void ActivateContents(content::WebContents* contents) OVERRIDE;
   virtual void DeactivateContents(content::WebContents* contents) OVERRIDE;
   virtual void CloseContents(WebContents* source) OVERRIDE;
   virtual void MoveContents(WebContents* source, const gfx::Rect& pos) OVERRIDE;
   virtual bool IsPopupOrPanel(const WebContents* source) const OVERRIDE;
   virtual void WebContentsCreated(WebContents* source_contents,
-                                  int64 source_frame_id,
-                                  const string16& frame_name,
+                                  int source_frame_id,
+                                  const base::string16& frame_name,
                                   const GURL& target_url,
                                   WebContents* new_contents) OVERRIDE;
 #if defined(OS_WIN)
   virtual void WebContentsFocused(WebContents* contents) OVERRIDE;
 #endif
   virtual content::ColorChooser* OpenColorChooser(
-      content::WebContents* web_contents, SkColor color) OVERRIDE;
+      content::WebContents* web_contents,
+      SkColor color,
+      const std::vector<ColorSuggestion>& suggestions) OVERRIDE;
   virtual void RunFileChooser(
       content::WebContents* web_contents,
       const content::FileChooserParams& params) OVERRIDE;
@@ -186,9 +189,9 @@ class Shell : public WebContentsDelegate,
       const NativeWebKeyboardEvent& event) OVERRIDE;
   virtual bool AddMessageToConsole(WebContents* source,
                                    int32 level,
-                                   const string16& message,
+                                   const base::string16& message,
                                    int32 line_no,
-                                   const string16& source_id) OVERRIDE;
+                                   const base::string16& source_id) OVERRIDE;
   virtual void RequestMediaAccessPermission(
       WebContents* web_contents,
       const MediaStreamRequest& request,

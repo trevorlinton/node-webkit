@@ -44,12 +44,15 @@
 #include "ui/gfx/native_widget_types.h"
 #include "ui/gfx/win/hwnd_util.h"
 #include "ui/gfx/path.h"
+#include "ui/gfx/canvas.h"
+#include "ui/gfx/icon_util.h"
+#include "ui/gfx/font_list.h"
+#include "ui/gfx/platform_font.h"
 #include "ui/gfx/image/image_skia_operations.h"
 #include "ui/views/controls/webview/webview.h"
 #include "ui/views/layout/box_layout.h"
 #include "ui/views/views_delegate.h"
 #include "ui/views/widget/widget.h"
-#include "ui/views/widget/native_widget_win.h"
 #include "ui/views/window/native_frame_view.h"
 #include "ui/base/win/shell.h"
 #include "content/browser/gpu/gpu_data_manager_impl.h"
@@ -60,6 +63,21 @@
 #include <Shellapi.h>
 #include <Shobjidl.h>
 #include "content/nw/src/resource.h"
+#include "ui/views/win/hwnd_util.h"
+#include "ui/views/widget/native_widget_private.h"
+#include "ui/events/event_handler.h"
+#include "ui/wm/core/easy_resize_window_targeter.h"
+#include "ui/aura/window.h"
+
+#include "chrome/browser/ui/views/accelerator_table.h"
+#include "base/basictypes.h"
+#include "chrome/app/chrome_command_ids.h"
+#include "ui/base/accelerators/accelerator.h"
+#include "ui/events/event_constants.h"
+#if defined(USE_ASH)
+#include "ash/accelerators/accelerator_table.h"
+#endif
+
 
 namespace nw {
 
@@ -138,7 +156,7 @@ bool IsParent(gfx::NativeView child, gfx::NativeView possible_parent) {
     return true;
 #endif
   gfx::NativeView parent = child;
-  while ((parent = platform_util::GetParent(parent))) {
+  while ((parent = (gfx::NativeView)::GetParent((HWND)parent))) {
     if (possible_parent == parent)
       return true;
   }
@@ -335,9 +353,12 @@ NativeWindowWin::NativeWindowWin(const base::WeakPtr<content::Shell>& shell,
   window_ = new views::Widget;
   views::Widget::InitParams params(views::Widget::InitParams::TYPE_WINDOW);
   params.delegate = this;
+  params.top_level = true;
   params.remove_standard_frame = !has_frame();
   params.use_system_default_icon = true;
   window_->Init(params);
+  if (!has_frame())
+    InstallEasyResizeTargeterOnContainer();
 
   views::WidgetFocusManager::GetInstance()->AddFocusChangeListener(this);
 
@@ -358,6 +379,7 @@ NativeWindowWin::NativeWindowWin(const base::WeakPtr<content::Shell>& shell,
     SetShowInTaskbar(false);
 
   OnViewWasResized();
+  window_->SetInitialFocus(ui::SHOW_STATE_NORMAL);
 }
 
 NativeWindowWin::~NativeWindowWin() {
@@ -567,12 +589,12 @@ void NativeWindowWin::SetResizable(bool resizable) {
   resizable_ = resizable;
 
   // Show/Hide the maximize button.
-  DWORD style = ::GetWindowLong((HWND)window_->GetNativeView(), GWL_STYLE);
+  DWORD style = ::GetWindowLong(views::HWNDForWidget(window_), GWL_STYLE);
   if (resizable)
     style |= WS_MAXIMIZEBOX;
   else
     style &= ~WS_MAXIMIZEBOX;
-  ::SetWindowLong((HWND)window_->GetNativeView(), GWL_STYLE, style);
+  ::SetWindowLong(views::HWNDForWidget(window_), GWL_STYLE, style);
 }
 
 void NativeWindowWin::SetShowInTaskbar(bool show) {
@@ -602,9 +624,9 @@ void NativeWindowWin::SetShowInTaskbar(bool show) {
   }
 
   if (show)
-    result = taskbar->AddTab(window_->GetNativeWindow());
+    result = taskbar->AddTab(views::HWNDForWidget(window_));
   else
-    result = taskbar->DeleteTab(window_->GetNativeWindow());
+    result = taskbar->DeleteTab(views::HWNDForWidget(window_));
 
   if (FAILED(result)) {
     LOG(ERROR) << "Failed to change the show in taskbar attribute";
@@ -734,8 +756,51 @@ void NativeWindowWin::FlashFrame(bool flash) {
   window_->FlashFrame(flash);
 }
 
+HICON createBadgeIcon(const HWND hWnd, const TCHAR *value, const int sizeX, const int sizeY) {
+  // canvas for the overlay icon
+  gfx::Canvas canvas(gfx::Size(sizeX, sizeY), 1, false);
+
+  // drawing red circle
+  SkPaint paint;
+  paint.setColor(SK_ColorRED);
+  canvas.DrawCircle(gfx::Point(sizeX / 2, sizeY / 2), sizeX / 2, paint);
+
+  // drawing the text
+  gfx::PlatformFont *platform_font = gfx::PlatformFont::CreateDefault();
+  const int fontSize = sizeY*0.65f;
+  gfx::Font font(platform_font->GetFontName(), fontSize);
+  platform_font->Release();
+  platform_font = NULL;
+  const int yMargin = (sizeY - fontSize) / 2;
+  canvas.DrawStringRectWithFlags(value, gfx::FontList(font), SK_ColorWHITE, gfx::Rect(sizeX, fontSize + yMargin + 1), gfx::Canvas::TEXT_ALIGN_CENTER);
+
+  // return the canvas as windows native icon handle
+  return IconUtil::CreateHICONFromSkBitmap(canvas.ExtractImageRep().sk_bitmap());
+}
+
 void NativeWindowWin::SetBadgeLabel(const std::string& badge) {
-  // TODO
+  base::win::ScopedComPtr<ITaskbarList3> taskbar;
+  HRESULT result = taskbar.CreateInstance(CLSID_TaskbarList, NULL,
+    CLSCTX_INPROC_SERVER);
+
+  if (FAILED(result)) {
+    VLOG(1) << "Failed creating a TaskbarList3 object: " << result;
+    return;
+  }
+
+  result = taskbar->HrInit();
+  if (FAILED(result)) {
+    LOG(ERROR) << "Failed initializing an ITaskbarList3 interface.";
+    return;
+  }
+
+  HICON icon = NULL;
+  HWND hWnd = views::HWNDForWidget(window_);
+  if (badge.size())
+    icon = createBadgeIcon(hWnd, base::UTF8ToUTF16(badge).c_str(), 32, 32);
+
+  taskbar->SetOverlayIcon(hWnd, icon, L"Status");
+  DestroyIcon(icon);
 }
 
 void NativeWindowWin::SetKiosk(bool kiosk) {
@@ -754,9 +819,11 @@ void NativeWindowWin::SetMenu(nwapi::Menu* menu) {
   menu->Rebuild();
 
   // menu is nwapi::Menu, menu->menu_ is NativeMenuWin,
-  ::SetMenu((HWND)window_->GetNativeWindow(), menu->menu_->GetNativeMenu());
+  ::SetMenu(views::HWNDForWidget(window_), menu->menu_->GetNativeMenu());
   // shake the window to get it to respond to adding the menu.
   SetPosition(GetPosition());
+
+  menu->UpdateKeys( window_->GetFocusManager() );
 }
 
 void NativeWindowWin::SetTitle(const std::string& title) {
@@ -829,8 +896,8 @@ const views::Widget* NativeWindowWin::GetWidget() const {
   return window_;
 }
 
-string16 NativeWindowWin::GetWindowTitle() const {
-  return UTF8ToUTF16(title_);
+base::string16 NativeWindowWin::GetWindowTitle() const {
+  return base::UTF8ToUTF16(title_);
 }
 
 void NativeWindowWin::DeleteDelegate() {
@@ -921,10 +988,13 @@ void NativeWindowWin::UpdateDraggableRegions(
 
 void NativeWindowWin::HandleKeyboardEvent(
     const content::NativeWebKeyboardEvent& event) {
+  unhandled_keyboard_event_handler_.HandleKeyboardEvent(event,
+                                                        GetFocusManager());
   // Any unhandled keyboard/character messages should be defproced.
   // This allows stuff like F10, etc to work correctly.
-  DefWindowProc(event.os_event.hwnd, event.os_event.message,
-                event.os_event.wParam, event.os_event.lParam);
+
+  // DefWindowProc(event.os_event.hwnd, event.os_event.message,
+  //               event.os_event.wParam, event.os_event.lParam);
 }
 
 void NativeWindowWin::Layout() {
@@ -1024,7 +1094,7 @@ void NativeWindowWin::OnViewWasResized() {
   gfx::Path path;
   path.addRect(0, 0, width, height);
   SetWindowRgn((HWND)web_contents()->GetView()->GetNativeView(),
-               path.CreateNativeRegion(),
+               (HRGN)path.CreateNativeRegion(),
                1);
 
   SkRegion* rgn = new SkRegion;
@@ -1041,8 +1111,10 @@ void NativeWindowWin::OnViewWasResized() {
           SkRegion::kUnion_Op);
     }
   }
+#if 0 //FIXME
   if (web_contents()->GetRenderViewHost()->GetView())
     web_contents()->GetRenderViewHost()->GetView()->SetClickthroughRegion(rgn);
+#endif
 }
 
 void NativeWindowWin::RenderViewCreated(content::RenderViewHost *render_view_host) {
@@ -1053,4 +1125,29 @@ void NativeWindowWin::RenderViewCreated(content::RenderViewHost *render_view_hos
   }
 }
 
+void NativeWindowWin::InstallEasyResizeTargeterOnContainer()  {
+  aura::Window* window = window_->GetNativeWindow();
+  gfx::Insets inset(kResizeInsideBoundsSize, kResizeInsideBoundsSize,
+                    kResizeInsideBoundsSize, kResizeInsideBoundsSize);
+  // Add the EasyResizeWindowTargeter on the window, not its root window. The
+  // root window does not have a delegate, which is needed to handle the event
+  // in Linux.
+  window->SetEventTargeter(scoped_ptr<ui::EventTargeter>(
+     new wm::EasyResizeWindowTargeter(window, inset, inset)));
+}
+
+bool NativeWindowWin::ShouldDescendIntoChildForEventHandling(
+    gfx::NativeView child,
+    const gfx::Point& location) {
+#if defined(USE_AURA)
+  if (child->Contains(web_view_->web_contents()->GetView()->GetNativeView())) {
+    // App window should claim mouse events that fall within the draggable
+    // region.
+    return !draggable_region_.get() ||
+      !draggable_region_->contains(location.x(), location.y());
+  }
+#endif
+
+  return true;
+}
 }  // namespace nw

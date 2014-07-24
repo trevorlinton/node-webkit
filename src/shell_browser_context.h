@@ -16,6 +16,7 @@
 
 namespace nw {
 class Package;
+class NwFormDatabaseService;
 }
 
 namespace content {
@@ -51,22 +52,38 @@ class ShellBrowserContext : public BrowserContext {
   virtual GeolocationPermissionContext*
       GetGeolocationPermissionContext() OVERRIDE;
   virtual quota::SpecialStoragePolicy* GetSpecialStoragePolicy() OVERRIDE;
-  virtual void RequestMIDISysExPermission(
+
+  virtual void RequestMidiSysExPermission(
       int render_process_id,
       int render_view_id,
       int bridge_id,
       const GURL& requesting_frame,
-      const MIDISysExPermissionCallback& callback) OVERRIDE;
-  virtual void CancelMIDISysExPermissionRequest(
-    int render_process_id,
-    int render_view_id,
-    int bridge_id,
-    const GURL& requesting_frame) OVERRIDE;
+      bool user_gesture,
+      const MidiSysExPermissionCallback& callback) OVERRIDE;
+  virtual void CancelMidiSysExPermissionRequest(
+      int render_process_id,
+      int render_view_id,
+      int bridge_id,
+      const GURL& requesting_frame) OVERRIDE;
+  virtual void RequestProtectedMediaIdentifierPermission(
+      int render_process_id,
+      int render_view_id,
+      int bridge_id,
+      int group_id,
+      const GURL& requesting_frame,
+      const ProtectedMediaIdentifierPermissionCallback& callback) OVERRIDE;
+  virtual void CancelProtectedMediaIdentifierPermissionRequests(
+      int group_id) OVERRIDE;
 
+  nw::NwFormDatabaseService* GetFormDatabaseService();
 
-  net::URLRequestContextGetter* CreateRequestContext(
-                                                     ProtocolHandlerMap* protocol_handlers);
-  net::URLRequestContextGetter* CreateRequestContextForStoragePartition(
+  // Maps to BrowserMainParts::PreMainMessageLoopRun.
+  void PreMainMessageLoopRun();
+
+  virtual net::URLRequestContextGetter* CreateRequestContext(
+                                                     ProtocolHandlerMap* protocol_handlers,
+                                                     ProtocolHandlerScopedVector protocol_interceptors);
+  virtual net::URLRequestContextGetter* CreateRequestContextForStoragePartition(
       const base::FilePath& partition_path,
       bool in_memory,
       ProtocolHandlerMap* protocol_handlers);
@@ -91,6 +108,7 @@ class ShellBrowserContext : public BrowserContext {
   scoped_ptr<ShellResourceContext> resource_context_;
   scoped_refptr<ShellDownloadManagerDelegate> download_manager_delegate_;
   scoped_refptr<ShellURLRequestContextGetter> url_request_getter_;
+  scoped_ptr<nw::NwFormDatabaseService> form_database_service_;
 
   DISALLOW_COPY_AND_ASSIGN(ShellBrowserContext);
 };
