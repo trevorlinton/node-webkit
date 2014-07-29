@@ -24,8 +24,12 @@
 #include "sandbox/win/src/sandbox_types.h"
 
 #if defined(OS_WIN)
+#include "Shlobj.h"
+#include "base/files/file_path.h"
+#include "base/file_util.h"
 #include "base/win/win_util.h"
 #include "content/public/app/startup_helper_win.h"
+#include "content/nw/src/net/util/embed_utils.h"
 #endif
 
 #if defined(OS_MACOSX)
@@ -54,13 +58,13 @@ void Bootstrap() {
     int resource_count = 6;
     path = path.Append(std::wstring(version.begin(),version.end()));
     cmd->AppendSwitchNative("resources", path.value());
-    if(!base::PathExists(path)) file_util::CreateDirectory(path);
+    if(!base::PathExists(path)) base::CreateDirectory(path);
     for(int i=0; i < resource_count; i++) {
       if(!base::PathExists(path.Append(resources[i]))) {
         embed_util::FileMetaInfo meta;
         if(embed_util::Utility::GetFileInfo(std::string(resources[i].begin(),resources[i].end()), &meta) &&
           embed_util::Utility::GetFileData(&meta))
-          file_util::WriteFile(path.Append(resources[i]),reinterpret_cast<const char *>(meta.data),meta.data_size);
+          base::WriteFile(path.Append(resources[i]),reinterpret_cast<const char *>(meta.data),meta.data_size);
       }
     }
     return;

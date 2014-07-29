@@ -28,9 +28,6 @@
 #include "content/browser/child_process_security_policy_impl.h"
 #include "content/browser/devtools/devtools_http_handler_impl.h"
 #include "content/browser/renderer_host/render_view_host_impl.h"
-#if defined(OS_WIN)
-#include "content/browser/renderer_host/render_widget_host_view_win.h"
-#endif
 #include "content/browser/web_contents/web_contents_impl.h"
 #include "content/public/browser/devtools_agent_host.h"
 #include "content/public/browser/devtools_http_handler.h"
@@ -59,7 +56,6 @@
 #include "content/nw/src/browser/native_window_win.h"
 #include "ui/views/view.h"
 #include "ui/views/widget/widget.h"
-#include "ui/views/widget/native_widget_win.h"
 #include "ui/views/widget/widget_delegate.h"
 #endif
 #ifdef TINT_IDE

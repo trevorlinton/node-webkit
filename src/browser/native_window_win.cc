@@ -32,7 +32,6 @@
 #include "content/nw/src/browser/native_window_toolbar_win.h"
 #include "content/nw/src/common/shell_switches.h"
 #include "content/nw/src/nw_shell.h"
-#include "content/browser/renderer_host/render_widget_host_view_win.h"
 #include "content/public/browser/native_web_keyboard_event.h"
 #include "content/public/browser/render_view_host.h"
 #include "content/public/browser/render_widget_host_view.h"
@@ -393,7 +392,7 @@ void NativeWindowWin::Close() {
 void NativeWindowWin::Notify(const std::string& title, const std::string& text, const std::string& subtitle, bool sound) {
   NOTIFYICONDATA nid = {};
   nid.cbSize = sizeof(nid);
-  nid.hWnd = window_->GetNativeWindow();
+  nid.hWnd = (HWND)window_->GetNativeWindow();
   nid.uFlags = NIF_ICON | NIF_INFO;
   nid.dwInfoFlags = NIIF_USER || NIIF_LARGE_ICON;
   lstrcpyn(nid.szInfoTitle,std::wstring(title.begin(),title.end()).c_str(),ARRAYSIZE(nid.szInfoTitle));
@@ -472,12 +471,12 @@ bool NativeWindowWin::IsFullscreen() {
 bool NativeWindowWin::DWMNegativeMarginInset(bool inset) {
   if(inset) {
     MARGINS mgMarInset = { -1, -1, -1, -1 };
-    if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
+    if(DwmExtendFrameIntoClientArea(views::HWNDForWidget(window_), &mgMarInset) != S_OK) {
       return false;
     }
   } else {
     MARGINS mgMarInset = { 0, 0, 0, 0 };
-    if(DwmExtendFrameIntoClientArea(window_->GetNativeWindow(), &mgMarInset) != S_OK) {
+    if(DwmExtendFrameIntoClientArea(views::HWNDForWidget(window_), &mgMarInset) != S_OK) {
       return false;
     }
   }
@@ -495,9 +494,9 @@ bool NativeWindowWin::IsGlass() {
 bool NativeWindowWin::SetLayeredTransparent() {
   is_layered_transparent_ = true;
   is_composited_transparent_ = false;
-  old_transparent_flags_ = GetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE);
-  SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, WS_EX_LAYERED);
-  SetWindowPos(window_->GetNativeWindow(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+  old_transparent_flags_ = GetWindowLong(views::HWNDForWidget(window_), GWL_EXSTYLE);
+  SetWindowLong(views::HWNDForWidget(window_), GWL_EXSTYLE, WS_EX_LAYERED);
+  SetWindowPos(views::HWNDForWidget(window_), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
   is_transparent_ = true;
   return true;
 }
@@ -509,14 +508,14 @@ bool NativeWindowWin::SetCompositedTransparent() {
   // on and off, however this is problematic as chromium isn't clear how to switch
   // frame modes without destroying the window, recreating it and moving the content
   // view.
-  old_transparent_flags_ = GetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE);
+  old_transparent_flags_ = GetWindowLong(views::HWNDForWidget(window_), GWL_EXSTYLE);
 
   // Rendering on hardware accelerated layers requires WS_EX_COMPOSITED mode,
   // if Aero isn't supported this will fail, hopefully our caller made sure of
   // that and used SetTransparent. The window will be made "temporarily" layered
   // during mouse overs to make sure we can ignore mouse clicks over transparent
   // areas.
-  SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, WS_EX_COMPOSITED);
+  SetWindowLong(views::HWNDForWidget(window_), GWL_EXSTYLE, WS_EX_COMPOSITED);
 
   // Compositing requires that we use a DWM margins set to -1 to remove the glass window.
   if(!DWMNegativeMarginInset(true)) {
@@ -536,7 +535,7 @@ bool NativeWindowWin::SetCompositedTransparent() {
   // transparency on the OS process and decides if the mouse event will go through.  Without
   // child layered window support (only in Windows 8+) this isn't possible without this semi-hack.
   TransparentMousePeekHook = SetWindowsHookEx(WH_MOUSE_LL, TransparentMousePeek, NULL, 0);
-  TransparentNativeHWND = window_->GetNativeWindow();
+  TransparentNativeHWND = views::HWNDForWidget(window_);
 
   // A failure to hook may not necessarily mean that it didn't work, unfortunately the error result
   // does not tell us much of anything, however lets track it so if there are problems we can see it
@@ -552,15 +551,15 @@ void NativeWindowWin::SetTransparent() {
   // Both layered and composited transparency styles require that we present ourselves as
   // a popup style window, using sysmenu and border helps retain familiar resizing, maximizing
   // and toolbar functionality (but not necessarily their widgets).
-  SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, WS_POPUPWINDOW);
+  SetWindowLong(views::HWNDForWidget(window_), GWL_STYLE, WS_POPUPWINDOW);
 
   // Compositing style transparency is only supported on VISTA and above, in addition compositing
   // must be enabled within the DWM otherwise its running under the same mode as XP.
-  if(base::win::GetVersion() >= base::win::VERSION_VISTA
-      && ui::win::IsAeroGlassEnabled())
+  //if(base::win::GetVersion() >= base::win::VERSION_VISTA
+  //    && ui::win::IsAeroGlassEnabled())
     SetCompositedTransparent();
-  else
-    SetLayeredTransparent();
+  //else
+  //  SetLayeredTransparent();
 }
 
 bool NativeWindowWin::IsTransparent() {
@@ -600,7 +599,7 @@ void NativeWindowWin::SetResizable(bool resizable) {
 void NativeWindowWin::SetShowInTaskbar(bool show) {
   if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
     // Change the owner of native window. Only needed on Windows XP.
-    ::SetWindowLong(window_->GetNativeView(),
+    ::SetWindowLong(views::HWNDForWidget(window_),
 #if defined(_M_X64) || defined(__amd64__)
                     GWLP_HWNDPARENT,
 #else
@@ -647,11 +646,11 @@ void NativeWindowWin::SetBadgeCount(int count) {
 /*
 void NativeWindowWin::SetShowInTaskbar(bool show) {
   if(show) {
-    SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE)|WS_EX_TOOLWINDOW);
-    SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, GetWindowLong(window_->GetNativeWindow(),GWL_STYLE) & ~WS_CAPTION);
+    SetWindowLong(views::HWNDForWidget(window_), GWL_EXSTYLE, GetWindowLong(views::HWNDForWidget(window_),GWL_EXSTYLE)|WS_EX_TOOLWINDOW);
+    SetWindowLong(views::HWNDForWidget(window_), GWL_STYLE, GetWindowLong(views::HWNDForWidget(window_),GWL_STYLE) & ~WS_CAPTION);
   } else {
-    SetWindowLong(window_->GetNativeWindow(), GWL_EXSTYLE, GetWindowLong(window_->GetNativeWindow(),GWL_EXSTYLE) & ~WS_EX_TOOLWINDOW);
-    SetWindowLong(window_->GetNativeWindow(), GWL_STYLE, GetWindowLong(window_->GetNativeWindow(),GWL_STYLE) | WS_CAPTION);
+    SetWindowLong(views::HWNDForWidget(window_), GWL_EXSTYLE, GetWindowLong(views::HWNDForWidget(window_),GWL_EXSTYLE) & ~WS_EX_TOOLWINDOW);
+    SetWindowLong(views::HWNDForWidget(window_), GWL_STYLE, GetWindowLong(views::HWNDForWidget(window_),GWL_STYLE) | WS_CAPTION);
   }
    if (show == false && base::win::GetVersion() < base::win::VERSION_VISTA) {
     if (hidden_owner_window_.get() == NULL) {
@@ -659,7 +658,7 @@ void NativeWindowWin::SetShowInTaskbar(bool show) {
     }
 
     // Change the owner of native window. Only needed on Windows XP.
-    ::SetWindowLong(window_->GetNativeView(),
+    ::SetWindowLong(views::HWNDForWidget(window_),
                     GWL_HWNDPARENT,
                     (LONG)hidden_owner_window_->hwnd());
   }
@@ -678,9 +677,9 @@ void NativeWindowWin::SetShowInTaskbar(bool show) {
   }
 
   if (show)
-    result = taskbar->AddTab(window_->GetNativeWindow());
+    result = taskbar->AddTab(views::HWNDForWidget(window_));
   else
-    result = taskbar->DeleteTab(window_->GetNativeWindow());
+    result = taskbar->DeleteTab(views::HWNDForWidget(window_));
 
   if (FAILED(result)) {
     LOG(ERROR) << "Failed to change the show in taskbar attribute";
@@ -741,7 +740,7 @@ gfx::Point NativeWindowWin::GetMousePosition() {
 }
 
 void NativeWindowWin::BeginOffclientMouseMove() {
-  SetCapture(window_->GetNativeWindow());
+  SetCapture(views::HWNDForWidget(window_));
 }
 
 void NativeWindowWin::EndOffclientMouseMove() {
@@ -1119,9 +1118,11 @@ void NativeWindowWin::OnViewWasResized() {
 
 void NativeWindowWin::RenderViewCreated(content::RenderViewHost *render_view_host) {
   if (is_transparent_ && is_layered_transparent_) {
-    content::GpuDataManagerImpl::GetInstance()->DisableHardwareAcceleration();
-    content::RenderWidgetHostViewWin *renderer = (content::RenderWidgetHostViewWin *)render_view_host->GetView();
-    renderer->SetLayeredWindow(window_->GetNativeWindow());
+
+	//window_->layer()->SetFillsBoundsOpaquely(false);
+//content::GpuDataManagerImpl::GetInstance()->DisableHardwareAcceleration();
+    //content::RenderWidgetHostViewAura *renderer = (content::RenderWidgetHostViewAura *)render_view_host->GetView();
+    //renderer->SetLayeredWindow(views::HWNDForWidget(window_));
   }
 }
 
