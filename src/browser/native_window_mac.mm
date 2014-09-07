@@ -477,6 +477,8 @@ void NativeWindowCocoa::InstallView() {
 
     InstallDraggableRegionViews();
   }
+
+
 }
 
 void NativeWindowCocoa::UninstallView() {
@@ -541,6 +543,19 @@ void NativeWindowCocoa::Show() {
     if (rwhv)
       rwhv->SetTakesFocusOnlyOnMouseDown(false);
   }
+  /*if(this->IsTransparent() || this->IsGlass()) {
+    NSRect rect = [[window() contentView] bounds];
+    fprintf(stderr,"Window size better be a size is: width: %f height: %f\n", rect.size.width, rect.size.height);
+    content::RenderWidgetHostView* rwhv =
+      shell_->web_contents()->GetRenderWidgetHostView();
+    rwhv->SetSize(gfx::Size(rect.size.width, rect.size.height));
+    SkBitmap background;
+    background.setConfig(SkBitmap::kARGB_8888_Config, 1, 1);
+    background.allocPixels();
+    background.eraseARGB(0x00, 0x00, 0x00, 0x00);
+    DCHECK(rwhv);
+    rwhv->SetBackground(background);
+  }*/
   first_show_ = false;
 }
 
@@ -562,6 +577,10 @@ void NativeWindowCocoa::Minimize() {
 
 void NativeWindowCocoa::Restore() {
   [window() deminiaturize:nil];
+}
+
+void NativeWindowCocoa::SetBackgroundColor(double red, double green, double blue, double alpha) {
+  [window() setBackgroundColor:[NSColor colorWithCalibratedRed:red green:green blue:blue alpha:alpha]];
 }
 
 void NativeWindowCocoa::SetFullscreen(bool fullscreen) {
@@ -1166,7 +1185,6 @@ void NativeWindowCocoa::EndOffclientMouseMove() {
 }
 
 void NativeWindowCocoa::RenderViewCreated(content::RenderViewHost *render_view_host) {
-	
 }
 
 

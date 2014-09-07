@@ -402,6 +402,10 @@ Window.prototype.setAppMenu = function(menuObj) {
   CallObjectMethod(this, 'SetAppMenu', [ menuObj.id ]);
 }
 
+Window.prototype.setBackgroundColor = function(r,g,b,a) {
+  CallObjectMethod(this, 'SetBackgroundColor', [ r,g,b,a ]);
+}
+
 Window.prototype.showDevTools = function(frm, headless) {
     var id = '';
     if (typeof frm === 'string') {

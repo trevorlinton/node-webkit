@@ -189,6 +189,13 @@ void Window::Call(const std::string& method,
                   const base::ListValue& arguments) {
   if (method == "Show") {
     shell_->window()->Show();
+  } else if (method == "SetBackgroundColor") {
+    double r=0, g=0, b=0, a=0;
+    arguments.GetDouble(0, &r);
+    arguments.GetDouble(0, &g);
+    arguments.GetDouble(0, &b);
+    arguments.GetDouble(0, &a);
+    shell_->window()->SetBackgroundColor(r,g,b,a);
   } else if (method == "Close") {
     bool force = false;
     arguments.GetBoolean(0, &force);

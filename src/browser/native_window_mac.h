@@ -86,7 +86,7 @@ class NativeWindowCocoa : public NativeWindow {
   virtual void SetInitialFocus(bool accept_focus) OVERRIDE;
   virtual bool InitialFocus() OVERRIDE;
   virtual void RenderViewCreated(content::RenderViewHost *render_view_host) OVERRIDE;
-
+  virtual void SetBackgroundColor(double red, double green, double blue, double alpha) OVERRIDE;
   // Called to handle a mouse event.
   void HandleMouseEvent(NSEvent* event);
 

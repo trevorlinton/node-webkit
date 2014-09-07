@@ -112,6 +112,7 @@ class NativeWindow {
   virtual void ClearMenu() {}
   virtual void SetInitialFocus(bool accept_focus) = 0;
   virtual bool InitialFocus() = 0;
+  virtual void SetBackgroundColor(double red, double green, double blue, double alpha) = 0;
 
   // Toolbar related controls.
   enum TOOLBAR_BUTTON {
